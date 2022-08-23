@@ -1,0 +1,150 @@
+{
+  "bench_settings": {
+    "fs": ["ext4"],
+    "pattern": ["write"],
+    "size": ["4k", "2m", "4m"],
+    "engine": ["sync"],
+    "thread": ["1", "2", "4", "8", "12", "16"],
+    "mountpoint": "/mnt/pmem"
+  },
+  "test_patterns": [
+    {
+      "ptn_name": "LR",
+      "ptn_desc": {
+        "desc": "Local-Remote stripped devices",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          },
+          {
+            "numa_node": 1,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "RR",
+      "ptn_desc": {
+        "desc": "Remote-Remote stripped devices",
+        "pattern": [
+          {
+            "numa_node": 1,
+            "num_split": 2,
+            "size": "300G"
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "L",
+      "ptn_desc": {
+        "desc": "Base line: one unstripped local device",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "R",
+      "ptn_desc": {
+        "desc": "Base line: one unstripped local device",
+        "pattern": [
+          {
+            "numa_node": 1,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "local-3-stripe",
+      "ptn_desc": {
+        "desc": "3 locally stripped devices",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 3,
+            "size": "201G"
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "stripe-3-split",
+      "ptn_desc": {
+        "desc": "LRR scheme",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          },
+          {
+            "numa_node": 1,
+            "num_split": 1
+          },
+          {
+            "numa_node": 2,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "stripe-4-split",
+      "ptn_desc": {
+        "desc": "LRRR scheme",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          },
+          {
+            "numa_node": 1,
+            "num_split": 1
+          },
+          {
+            "numa_node": 2,
+            "num_split": 1
+          },
+          {
+            "numa_node": 3,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "stripe-8-split",
+      "ptn_desc": {
+        "desc": "LRRR scheme",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 2,
+            "size": "300G"
+          },
+          {
+            "numa_node": 1,
+            "num_split": 2,
+            "size": "300G"
+          },
+          {
+            "numa_node": 2,
+            "num_split": 2,
+            "size": "300G"
+          },
+          {
+            "numa_node": 3,
+            "num_split": 2,
+            "size": "300G"
+          }
+        ]
+      }
+    }
+  ]
+}

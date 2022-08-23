@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Setting up bench, run before tpcc starts
+#
+# Argument list:
+#  - $1 for socket configuration, 0 for single socket, 1 for multi-socket
+#
+# Sets variable:
+#  - numactl_cmd: For numactl command
+function setup_bench {
+    # Setup numactl cmd
+    if [[ "x$1" == "x1" ]]; then
+        numactl_cmd="numactl --interleave=all "
+    else
+        numactl_cmd="numactl -N 0 -m 0 "
+    fi
+
+    # Drop caches
+    echo 3 > /proc/sys/vm/drop_caches
+
+    # Start MySQL
+    systemctl start mysqld
+
+    # Sleep for some seconds
+    sleep 5
+}
+
+function stop_bench {
+    # Stop mysqld
+    systemctl stop mysqld
+}

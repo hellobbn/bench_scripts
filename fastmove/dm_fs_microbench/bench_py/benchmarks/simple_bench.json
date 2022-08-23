@@ -1,0 +1,52 @@
+{
+  "bench_settings": {
+    "fs": ["ext4", "nova"],
+    "pattern": ["write"],
+    "size": ["4k"],
+    "engine": ["sync"],
+    "thread": ["1"],
+    "mountpoint": "/mnt/pmem"
+  },
+  "test_patterns": [
+    {
+      "ptn_name": "LR",
+      "ptn_desc": {
+        "desc": "Local-Remote stripped devices",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          },
+          {
+            "numa_node": 1,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "L",
+      "ptn_desc": {
+        "desc": "Base line: one unstripped local device",
+        "pattern": [
+          {
+            "numa_node": 0,
+            "num_split": 1
+          }
+        ]
+      }
+    },
+    {
+      "ptn_name": "R",
+      "ptn_desc": {
+        "desc": "Base line: one unstripped local device",
+        "pattern": [
+          {
+            "numa_node": 1,
+            "num_split": 1
+          }
+        ]
+      }
+    }
+  ]
+}
