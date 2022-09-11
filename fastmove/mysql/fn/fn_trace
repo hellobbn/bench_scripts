@@ -7,6 +7,6 @@ function trace-query {
 
 function stop-trace {
     sleep 5
-    kill -s 15 $(pidof bpftrace)
+    kill_if_exist bpftrace
     wait
 }

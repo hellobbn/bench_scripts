@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-set -x
+# set -x
 
 # Import trace related functions
 source fn/fn_trace
@@ -14,6 +14,9 @@ source fn/fn_bench
 
 # Import fs related functions
 source fn/fn_fs
+
+# Import other misc functions
+source fn/fn_misc
 
 # Main benchmark function
 # We assume that everything is done before the benchmark begin
@@ -31,11 +34,13 @@ function bench_main {
 
     trace-query $1 &
 
-    pcm-memory 1 | tee  $1.pcm-log
+    # pcm-memory 1 | tee  $1.pcm-log
+    /home/chenlf/monitor_msr > $1.msr.log &
 
-    $numactl_cmd /root/tpcc-mysql/tpcc_start -h 127.0.0.1 -P 3306 -d tpcc5000 -u root -p "" -w 5000 -c 12 -r 120 -l 600 -i 10 | tee $1
+    $numactl_cmd /root/tpcc-mysql/tpcc_start -h 127.0.0.1 -P 3306 -d tpcc5000 -u root -p "" -w 5000 -c 14 -r 120 -l 600 -i 10 | tee $1
 
-    kill $(pidof pcm-memory)
+    # kill_if_exist pcm-memory
+    killall monitor_msr
 
     stop-trace
 
@@ -50,7 +55,12 @@ function bench_main {
 #  - $2 = 0 for CPU, 1 for DMA
 #  - $3: Argument for mysql, innodb_page_cleaners
 #  - $4: Filesystem to use
-#  - $5: accel local-write threshold
+#  - $5: accel: local-write: Local write threshold
+#  - $6: accel: local-read: Local read threshold
+#  - $7: accel: chunks: Number of chunks to split (if is to split)
+#  - $8: accel: watermark: Decide whether to split based on inflight and this
+#  - $9: accel: main-switch: Routine to be used on master thread: 0 for DMA, 1 for CPU
+#  - $10: accel: worker-switch: Routine to be used on worker thread, 0 for DMA, 1 for CPU
 function prepare_benchmark {
     # Prepare a stripe target (or non-stripe target)
     echo "==> Check target"
@@ -68,20 +78,25 @@ function prepare_benchmark {
     if [ $2 -eq 0 ]; then
         echo "<== Setting for CPU"
         sysctl accel.mode=0
-        sysctl accel.concurrency=0
+        sysctl accel.watermark=0
         sysctl accel.ddio=1
         /root/tpcc-mysql/enable-ddio
     else
         echo "<== Setting for DMA"
         sysctl accel.mode=1
-        sysctl accel.concurrency=4
+        sysctl accel.watermark=$8
         sysctl accel.ddio=0
         sysctl accel.sync-wait=1
-        /root/tpcc-mysql/disable-ddio
-        sysctl accel.local-read=65536
+        sysctl accel.local-read=$6
         sysctl accel.local-write=$5
         sysctl accel.remote-read=16384
         sysctl accel.remote-write=16384
+	sysctl accel.main-switch=$9
+	sysctl accel.worker-switch=${10}
+        /root/tpcc-mysql/disable-ddio
+
+	## Customization section
+	sysctl accel.chunks=$7
     fi
     if [ $1 -eq 0 ]; then
         echo "<== Setting for non-stripe target"
@@ -185,10 +200,16 @@ init_all
 
 setting_fs="nova"
 setting_skt_setup="SS"
-setting_method_setup="CPU"
-setting_write_thresh="16384 32768 65536"
+setting_method_setup="DMA"
+setting_write_thresh="16384 32768"
+setting_read_thresh="32768 65536"
+setting_watermark="128"
+setting_chunk="1 2 4"
 
+for chunks in $setting_chunk; do
+for watermark in $setting_watermark; do
 for lwrite_thrsh in $setting_write_thresh; do
+  for lread_thrsh in $setting_read_thresh; do
     for fs in $setting_fs; do
         for ssetup in $setting_skt_setup; do
             for msetup in $setting_method_setup; do
@@ -205,14 +226,17 @@ for lwrite_thrsh in $setting_write_thresh; do
                         m_cmd=1
                     fi
 
-                    echo "==> Benchmark begin for $ssetup-$msetup-$i-$fs-$lwrite_thrsh"
-                    prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh
-                    bench_main "$dir_name/$ssetup-$msetup-$i-$fs-$lwrite_thrsh" $s_cmd
+                    echo "==> Benchmark begin for $ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark"
+                    prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh $lread_thrsh $chunks $watermark 0 1
+                    bench_main "$dir_name/$ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark" $s_cmd
                     end_benchmark $fs $s_cmd
                 done
             done
         done
     done
+  done
+done
+done
 done
 
 echo $date_prefix
