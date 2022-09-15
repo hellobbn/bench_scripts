@@ -3,3 +3,7 @@ function kill_if_exist {
     pkill $1;
   fi
 }
+
+function fn_exists {
+  declare -F "$1" > /dev/null;
+}

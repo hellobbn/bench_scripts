@@ -6,6 +6,7 @@ import os
 import time
 import argparse
 
+#############################################################################
 # This script automates the pattern creation and testing. Specifically,
 # it will read files from a json file containing the following information
 # for each pattern:
@@ -35,6 +36,7 @@ import argparse
 # }
 #
 # The above will create a stripe across two numa_nodes: 0, 1 (full capacity)
+#############################################################################
 
 # TODO: Use a class, for now, all things should be cached locally
 
@@ -264,6 +266,7 @@ def pattern_init(pattern_detail, numa_num, dm_script="create_dm.pl"):
         # Get the namespace
         namespace_at_numa = device["namespace"]
         size_at_numa = int(device["size"])
+        size_of_each_split = 0
         if num_split != 1:
             if ninfo["size"]:
                 size_of_each_split = ninfo["size"]
@@ -275,9 +278,13 @@ def pattern_init(pattern_detail, numa_num, dm_script="create_dm.pl"):
 
         if num_split > 1:
             for _ in range(0, num_split):
-                subprocess.check_output(["sudo", "ndctl", "create-namespace",
-                                            "-m", "fsdax", "-s",
-                                            str(size_of_each_split)])
+                if size_of_each_split != 0:
+                    subprocess.check_output(["sudo", "ndctl", "create-namespace",
+                                                "-m", "fsdax", "-s",
+                                                str(size_of_each_split)])
+                else:
+                    eprint("BUT: size_of_each_split not defined, but the number"
+                            " of split is larger than 0")
         else:
             subprocess.check_output(["sudo", "ndctl", "create-namespace"])
 
