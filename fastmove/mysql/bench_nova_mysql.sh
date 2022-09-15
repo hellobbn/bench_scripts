@@ -35,7 +35,7 @@ function bench_main {
     trace-query $1 &
 
     # pcm-memory 1 | tee  $1.pcm-log
-    /home/chenlf/monitor_msr > $1.msr.log &
+    /home/chenlf/monitor_msr >$1.msr.log &
 
     $numactl_cmd /root/tpcc-mysql/tpcc_start -h 127.0.0.1 -P 3306 -d tpcc5000 -u root -p "" -w 5000 -c 14 -r 120 -l 600 -i 10 | tee $1
 
@@ -91,12 +91,12 @@ function prepare_benchmark {
         sysctl accel.local-write=$5
         sysctl accel.remote-read=16384
         sysctl accel.remote-write=16384
-	sysctl accel.main-switch=$9
-	sysctl accel.worker-switch=${10}
+        sysctl accel.main-switch=$9
+        sysctl accel.worker-switch=${10}
         /root/tpcc-mysql/disable-ddio
 
-	## Customization section
-	sysctl accel.chunks=$7
+        ## Customization section
+        sysctl accel.chunks=$7
     fi
     if [ $1 -eq 0 ]; then
         echo "<== Setting for non-stripe target"
@@ -140,11 +140,11 @@ function prepare_benchmark {
 
     # Change MySQL Configuration
     echo "==> monitor-malloc-default-$3"
-    printf "#\n# This group are read by MySQL server.\n# Use it for options that only the server (but not clients) should see\n#\n# For advice on how to change settings please see\n# http://dev.mysql.com/doc/refman/en/server-configuration-defaults.html\n#\n# Settings user and group are ignored when systemd is used.\n# If you need to run mysqld under a different user or group,\n# customize your systemd unit file for mysqld according to the\n# instructions in http://fedoraproject.org/wiki/Systemd\n" > /etc/my.cnf
-    printf "[mysqld]\ndatadir=/mnt/pmem/mysql\nsocket=/mnt/pmem/mysql/mysql.sock\nlog-error=/var/log/mysql/mysqld.log\npid-file=/run/mysqld/mysqld.pid\n\ndefault_storage_engine=InnoDB\n" >> /etc/my.cnf 
-    printf "innodb_io_capacity=1000000\n" >> /etc/my.cnf
-    printf "# innodb_page_cleaners=$3\n" >> /etc/my.cnf
-    printf "innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >> /etc/my.cnf
+    printf "#\n# This group are read by MySQL server.\n# Use it for options that only the server (but not clients) should see\n#\n# For advice on how to change settings please see\n# http://dev.mysql.com/doc/refman/en/server-configuration-defaults.html\n#\n# Settings user and group are ignored when systemd is used.\n# If you need to run mysqld under a different user or group,\n# customize your systemd unit file for mysqld according to the\n# instructions in http://fedoraproject.org/wiki/Systemd\n" >/etc/my.cnf
+    printf "[mysqld]\ndatadir=/mnt/pmem/mysql\nsocket=/mnt/pmem/mysql/mysql.sock\nlog-error=/var/log/mysql/mysqld.log\npid-file=/run/mysqld/mysqld.pid\n\ndefault_storage_engine=InnoDB\n" >>/etc/my.cnf
+    printf "innodb_io_capacity=1000000\n" >>/etc/my.cnf
+    printf "# innodb_page_cleaners=$3\n" >>/etc/my.cnf
+    printf "innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>/etc/my.cnf
 }
 
 function end_benchmark {
@@ -198,47 +198,51 @@ mkdir -p $dir_name
 
 init_all
 
-setting_fs="nova"
+setting_fs="xfs ext4"
 setting_skt_setup="SS"
-setting_method_setup="DMA"
-setting_write_thresh="16384 32768"
-setting_read_thresh="32768 65536"
+setting_method_setup="CPU"
+setting_write_thresh="16384"
+setting_read_thresh="65536"
 setting_watermark="128"
-setting_chunk="1 2 4"
+setting_chunk="1"
+setting_main_wr="0"
+setting_worker_wr="1"
 
 for chunks in $setting_chunk; do
-for watermark in $setting_watermark; do
-for lwrite_thrsh in $setting_write_thresh; do
-  for lread_thrsh in $setting_read_thresh; do
-    for fs in $setting_fs; do
-        for ssetup in $setting_skt_setup; do
-            for msetup in $setting_method_setup; do
-                for i in 16; do
-                    if [[ $ssetup == "DS" ]]; then
-                        s_cmd=1
-                    else
-                        s_cmd=0
-                    fi
+    for watermark in $setting_watermark; do
+        for lwrite_thrsh in $setting_write_thresh; do
+            for lread_thrsh in $setting_read_thresh; do
+                for fs in $setting_fs; do
+                    for ssetup in $setting_skt_setup; do
+                        for msetup in $setting_method_setup; do
+                            for main_wr in $setting_main_wr; do
+                                for worker_wr in $setting_worker_wr; do
+                                    for i in 16; do
+                                        if [[ $ssetup == "DS" ]]; then
+                                            s_cmd=1
+                                        else
+                                            s_cmd=0
+                                        fi
 
-                    if [[ $msetup == "CPU" ]]; then
-                        m_cmd=0
-                    else
-                        m_cmd=1
-                    fi
+                                        if [[ $msetup == "CPU" ]]; then
+                                            m_cmd=0
+                                        else
+                                            m_cmd=1
+                                        fi
 
-                    echo "==> Benchmark begin for $ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark"
-                    prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh $lread_thrsh $chunks $watermark 0 1
-                    bench_main "$dir_name/$ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark" $s_cmd
-                    end_benchmark $fs $s_cmd
+                                        echo "==> Benchmark begin for $ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark"
+                                        prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh $lread_thrsh $chunks $watermark $main_wr $worker_wr
+                                        bench_main "$dir_name/$ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark-$main_wr-$worker_wr" $s_cmd
+                                        end_benchmark $fs $s_cmd
+                                    done
+                                done
+                            done
+                        done
+                    done
                 done
             done
         done
     done
-  done
-done
-done
 done
 
 echo $date_prefix
-
-
