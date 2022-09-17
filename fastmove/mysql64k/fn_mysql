@@ -15,7 +15,7 @@ function setup_single_bench {
   printf "[mysqld]\ndatadir=/mnt/pmem/mysql\nsocket=/mnt/pmem/mysql/mysql.sock\nlog-error=/var/log/mysql/mysqld.log\npid-file=/run/mysqld/mysqld.pid\n\ndefault_storage_engine=InnoDB\n" >>/etc/my.cnf
   printf "innodb_io_capacity=1000000\n" >>/etc/my.cnf
   printf "innodb_page_cleaners=16\n" >>/etc/my.cnf
-  printf "innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>/etc/my.cnf
+  printf "# innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>/etc/my.cnf
 
   sync
   sleep 2

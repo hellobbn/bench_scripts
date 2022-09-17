@@ -10,11 +10,13 @@ S512K=524288
 set -e
 set -x
 
-export GRAPHCHI_ROOT=/home/chenlf/GraphWalker-master
+export GRAPHCHI_ROOT=/home/gloit/GraphWalker-master
 GRAPHCHI_DATA_DIR=/data2
 
 function bench_single_main {
   PREFIX=$1
+  cp -ra /data2/kron30_32_GraphWalker /mnt/pmem
+
   for repeat in $(seq 1 1); do
     NAME=$PREFIX-msppr-$repeat
     ${BENCH_DIR}/graph_iter.bt >$NAME-stat &
@@ -39,7 +41,7 @@ function bench_single_main {
     ${numactl_cmd} $GRAPHCHI_ROOT/bin/apps/graphlet \
       file $GRAPHCHI_DATA_DIR/kron30_32_sorted.txt \
       csrfiles $MOUNT_DIR/kron30_32 \
-      N 1048576 \
+      N 1073741824 \
       R 10000 \
       L 4 \
       prob 0.2 >$NAME &

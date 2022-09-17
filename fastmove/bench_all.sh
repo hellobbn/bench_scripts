@@ -45,18 +45,25 @@ export MOUNT_DIR=/mnt/pmem
 #
 ######################################################################
 
-setting_bench="graphwalker"
-setting_fs="xfs ext4 nova"
-setting_skt_setup="DS"
-setting_method_setup="CPU DMA"
-setting_write_thresh="16384"
-setting_read_thresh="65536"
-setting_watermark="20"
-setting_chunk="2"
-setting_main_wr="0"
-setting_worker_wr="1"
-setting_scatter="1"
+# setting_bench="graphwalker mysql"
+# setting_fs="xfs ext4 nova"
+# setting_skt_setup="SS DS"
+# setting_method_setup="DMA CPU"
+# setting_write_thresh="16384"
+# setting_read_thresh="65536"
+# setting_remote_write_thresh="16384"
+# setting_remote_read_thresh="16384"
+# setting_watermark="20"
+# setting_chunk="2"
+# setting_main_wr="0"
+# setting_worker_wr="1"
+# setting_scatter="1"
 
+# If you have a already defined bench profile in profile directory
+# put it here
+# setting_bench_profile="breakdown_sg breakdown_submit_opt breakdown_threshold_write breakdown_threshold_read breakdown_split breakdown_concurrency"
+# setting_bench_profile="breakdown_t3_submit_opt breakdown_t4_wthreshold breakdown_t6_concurrency breakdown_t2_scatter breakdown_t4_threshold breakdown_t5_bulkreadsplit"
+setting_bench_profile="breakdown_t6_concurrency"
 #
 # Main benchmark function
 # We assume that everything is done before the benchmark begin
@@ -81,12 +88,12 @@ function bench_main {
     fi
 
     # Drop caches
-    echo 3 > /proc/sys/vm/drop_caches
 
     # Bench specific setup
     if [[ $(type -t setup_single_bench) = function ]]; then
         setup_single_bench $1 $2
     fi
+    echo 3 > /proc/sys/vm/drop_caches
 
     bench_single_main $1 $2
 
@@ -111,7 +118,9 @@ function bench_main {
 #  - $9: accel: main-switch: Routine to be used on master thread: 0 for DMA, 1 for CPU
 #  - $10: accel: worker-switch: Routine to be used on worker thread, 0 for DMA, 1 for CPU
 #  - $11: accel: scatter: Whether we want to use the new scatter routine?
-#
+#  - $12: accel: user-nums: Concurrency control
+#  - $13: accel: remote-read
+#  - $14: accel: remote-write
 function prepare_benchmark {
     # Prepare a stripe target (or non-stripe target)
     echo "==> Check target"
@@ -134,18 +143,27 @@ function prepare_benchmark {
     else
         echo "<== Setting for DMA"
         sysctl accel.mode=1
+        if [ $1 -eq 1 ]; then
+            if [ $4 == "nova" ]; then
+                sysctl accel.mode=1
+            else
+                sysctl accel.mode=2
+            fi
+        fi
+
         # sysctl accel.watermark=$8
         sysctl accel.ddio=0
         sysctl accel.sync-wait=1
-        sysctl accel.local-read=$6
-        sysctl accel.local-write=$5
-        sysctl accel.remote-read=16384
-        sysctl accel.remote-write=16384
+        sysctl accel.local-read=32768
+        sysctl accel.local-write=16384
         # sysctl accel.main-switch=$9
         # sysctl accel.worker-switch=${10}
         /root/tpcc-mysql/disable-ddio
         sysctl accel.chunks=$7
-        # sysctl accel.scatter=${11}
+        sysctl accel.user-nums=${12}
+        sysctl accel.scatter=${11}
+        sysctl accel.remote-read=32768
+        sysctl accel.remote-write=16384
     fi
     if [ $1 -eq 0 ]; then
         echo "<== Setting for non-stripe target"
@@ -229,6 +247,7 @@ function init_all {
     chown -R mysql:mysql /run/mysqld
 
     for bench in $1; do
+        export BENCH_DIR=${LOCAL_DIR}/${bench}
         source ${bench}/fn_${bench}
         if [[ $(type -t init_single_bench) = function ]]; then 
             init_single_bench
@@ -238,14 +257,18 @@ function init_all {
 
 # Setup result directory
 date_prefix=$(date --iso-8601=seconds)
-dir_name="result_$date_prefix"
+for profile in $setting_bench_profile; do
+    source profile/$profile
+
+dir_name="result_$date_prefix/$profile"
 mkdir -p $dir_name
+
+export LOCAL_DIR=`pwd`
 
 init_all $setting_bench
 
-LOCAL_DIR=`pwd`
 for bench in $setting_bench; do
-    BENCH_DIR=$LOCAL_DIR/${bench}
+    export BENCH_DIR=${LOCAL_DIR}/${bench}
     source ${bench}/fn_${bench}
     mkdir -p $dir_name/$bench
     for chunks in $setting_chunk; do
@@ -258,7 +281,10 @@ for bench in $setting_bench; do
                                 for main_wr in $setting_main_wr; do
                                     for worker_wr in $setting_worker_wr; do
                                         for i in 16; do
+                                            for user_num in $setting_user_nums; do
                                             for sct in $setting_scatter; do
+                                            for rread_thrsh in $setting_remote_read_thresh; do
+                                            for rwrite_thrsh in $setting_remote_write_thresh; do
                                                 if [[ $ssetup == "DS" ]]; then
                                                     s_cmd=1
                                                 else
@@ -272,9 +298,12 @@ for bench in $setting_bench; do
                                                 fi
 
                                                 echo "==> Benchmark begin for $bench: $ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark-$sct"
-                                                prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh $lread_thrsh $chunks $watermark $main_wr $worker_wr $sct
+                                                prepare_benchmark $s_cmd $m_cmd $i $fs $lwrite_thrsh $lread_thrsh $chunks $watermark $main_wr $worker_wr $sct $user_num $rread_thrsh $rwrite_thrsh
                                                 bench_main "$dir_name/$bench/$ssetup-$msetup-$i-$fs-$lwrite_thrsh-$lread_thrsh-$chunks-$watermark-$main_wr-$worker_wr-$sct" $s_cmd
                                                 end_benchmark $fs $s_cmd
+                                            done
+                                            done
+                                            done
                                             done
                                         done
                                     done
@@ -287,3 +316,5 @@ for bench in $setting_bench; do
         done
     done
 done
+done
+

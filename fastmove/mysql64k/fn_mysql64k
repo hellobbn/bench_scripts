@@ -5,7 +5,7 @@ source $BENCH_DIR/fn/fn_trace
 function setup_single_bench {
   # Copy database
   echo "==> Copy MySQL Database"
-  cp -rap /mnt/nvme/tpcc-p16-5000 /mnt/pmem/mysql
+  cp -rap /mnt/nvme/tpcc-p64-5000 /mnt/pmem/mysql
   sync
   chown -R mysql:mysql /mnt/pmem/mysql
 
@@ -15,7 +15,7 @@ function setup_single_bench {
   printf "[mysqld]\ndatadir=/mnt/pmem/mysql\nsocket=/mnt/pmem/mysql/mysql.sock\nlog-error=/var/log/mysql/mysqld.log\npid-file=/run/mysqld/mysqld.pid\n\ndefault_storage_engine=InnoDB\n" >>/etc/my.cnf
   printf "innodb_io_capacity=1000000\n" >>/etc/my.cnf
   printf "innodb_page_cleaners=16\n" >>/etc/my.cnf
-  printf "innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>/etc/my.cnf
+  printf "# innodb_buffer_pool_size=60G\ninnodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>/etc/my.cnf
 
   sync
   sleep 2
