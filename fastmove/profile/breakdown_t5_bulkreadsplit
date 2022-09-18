@@ -2,7 +2,7 @@
 
 # Breakdown: +submit_opt +thresh_write + thresh_read + split
 
-setting_bench="mysql"
+setting_bench="filebench"
 setting_fs="xfs"
 setting_skt_setup="SS DS"
 setting_method_setup="DMA"

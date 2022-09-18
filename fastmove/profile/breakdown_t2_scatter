@@ -4,7 +4,7 @@
 #    +batch_pin
 #    -optimized_submission -threshold -bulk_read_split -concurrency
 
-setting_bench="mysql"
+setting_bench="filebench"
 setting_fs="xfs"
 setting_skt_setup="DS SS"
 setting_method_setup="DMA"

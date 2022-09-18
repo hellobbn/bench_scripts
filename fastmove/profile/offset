@@ -1,19 +1,18 @@
 #!/bin/bash
 
-# Breakdown: +submit_opt +thresh_write +thresh_read
+# Breakdown: CPU
 
-setting_bench="filebench"
-setting_fs="xfs"
+setting_bench="graphwalker"
+setting_fs="nova"
 setting_skt_setup="DS SS"
 setting_method_setup="DMA"
 setting_write_thresh="16384"
-setting_read_thresh="32768"
+setting_read_thresh="65536"
 setting_watermark="10000" # Deprecated
-setting_user_nums="10000"
-setting_chunk="1"
+setting_user_nums="8"
+setting_chunk="2"
 setting_main_wr="0" # Deprecated
 setting_worker_wr="1" # Deprecated
-setting_scatter="1"
+setting_scatter="0"
 setting_remote_write_thresh="16384"
-setting_remote_read_thresh="32768"
-
+setting_remote_read_thresh="16384"

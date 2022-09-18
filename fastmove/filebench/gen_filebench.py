@@ -8,8 +8,8 @@ set $nfiles=%d
 set $meandirwidth=%d
 set $filesize=cvar(type=cvar-gamma,parameters=mean:131072;gamma:1.5)
 set $nthreads=%d
-set $iosize=%s
-set $meanappendsize=%s
+set $iosize=cvar(type=cvar-gamma,parameters=mean:32768;gamma:1.5,min=4096,max=1048576)
+set $meanappendsize=cvar(type=cvar-gamma,parameters=mean:32768;gamma:1.5,min=4096,max=262144)
 set $runtime=%d
 
 define fileset name=bigfileset,path=$dir,size=$filesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
@@ -282,7 +282,7 @@ def gen_fileserver():
     parser.add_argument('-a', '--mean_append_size', metavar='SIZE', type=str, dest='meanappendsize',
                     help='mean append size', default='16k')
     arg = parser.parse_args(sys.argv[2:])
-    workload = FILESERVER_TEMPLATE % (arg.dir, arg.nfiles, arg.meandirwidth, arg.nthreads, arg.iosize, arg.meanappendsize, arg.runtime)
+    workload = FILESERVER_TEMPLATE % (arg.dir, arg.nfiles, arg.meandirwidth, arg.nthreads, arg.runtime)
     dump_workload(workload, arg.output)
 
 def gen_varmail():

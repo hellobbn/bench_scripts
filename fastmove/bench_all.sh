@@ -63,10 +63,10 @@ export MOUNT_DIR=/mnt/pmem
 # put it here
 
 # setting_bench_profile="breakdown_sg breakdown_submit_opt breakdown_threshold_write breakdown_threshold_read breakdown_split breakdown_concurrency"
-# setting_bench_profile="breakdown_t3_submit_opt breakdown_t4_wthreshold breakdown_t6_concurrency breakdown_t2_scatter breakdown_t4_threshold breakdown_t5_bulkreadsplit"
+setting_bench_profile="breakdown_t0_cpu breakdown_t6_concurrency"
 # setting_bench_profile="breakdown_t6_concurrency"
-#setting_bench_profile="breakdown_t0_cpu"
-setting_bench_profile="offset"
+# setting_bench_profile="breakdown_t0_cpu"
+# setting_bench_profile="offset"
 
 
 #
