@@ -61,9 +61,14 @@ export MOUNT_DIR=/mnt/pmem
 
 # If you have a already defined bench profile in profile directory
 # put it here
+
 # setting_bench_profile="breakdown_sg breakdown_submit_opt breakdown_threshold_write breakdown_threshold_read breakdown_split breakdown_concurrency"
 # setting_bench_profile="breakdown_t3_submit_opt breakdown_t4_wthreshold breakdown_t6_concurrency breakdown_t2_scatter breakdown_t4_threshold breakdown_t5_bulkreadsplit"
-setting_bench_profile="breakdown_t6_concurrency"
+# setting_bench_profile="breakdown_t6_concurrency"
+#setting_bench_profile="breakdown_t0_cpu"
+setting_bench_profile="offset"
+
+
 #
 # Main benchmark function
 # We assume that everything is done before the benchmark begin
@@ -93,6 +98,7 @@ function bench_main {
     if [[ $(type -t setup_single_bench) = function ]]; then
         setup_single_bench $1 $2
     fi
+
     echo 3 > /proc/sys/vm/drop_caches
 
     bench_single_main $1 $2
@@ -152,6 +158,7 @@ function prepare_benchmark {
         fi
 
         # sysctl accel.watermark=$8
+        sysctl accel.dbg-mask=1
         sysctl accel.ddio=0
         sysctl accel.sync-wait=1
         sysctl accel.local-read=32768
