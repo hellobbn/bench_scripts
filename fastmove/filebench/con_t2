@@ -1,0 +1,9 @@
+Filebench Version 1.5-alpha3
+0.000: Allocated 177MB of shared memory
+0.004: Latency histogram enabled
+0.004: Populating and pre-allocating filesets
+0.010: bigfileset populated: 10000 files, avg. dir. width = 20, avg. dir. depth = 3.1, 0 leafdirs, 19852.177MB total size
+0.010: Removing bigfileset tree (if exists)
+0.297: Pre-allocating directories in bigfileset tree
+0.304: Pre-allocating files in bigfileset tree
+2.017: Aborting...

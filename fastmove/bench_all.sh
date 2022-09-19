@@ -64,8 +64,8 @@ export PATH=/usr/local/bin:$PATH
 # If you have a already defined bench profile in profile directory
 # put it here
 
-# setting_bench_profile="breakdown_t0_cpu breakdown_t7_threshold_write breakdown_t3_concurrency breakdown_t4_scatter breakdown_t5_bulkreadsplit breakdown_t6_threshold_read"
-setting_bench_profile="breakdown_t7_threshold_write"
+setting_bench_profile="breakdown_t0_cpu breakdown_t7_threshold_write breakdown_t3_concurrency breakdown_t4_scatter breakdown_t5_bulkreadsplit breakdown_t6_threshold_read"
+# setting_bench_profile="breakdown_t0_cpu breakdown_t7_threshold_write"
 # setting_bench_profile="breakdown_t3_concurrency"
 # setting_bench_profile="breakdown_t6_threshold_read breakdown_t7_threshold_write"
 # setting_bench_profile="breakdown_t2_scatter breakdown_t4_bulkreadsplit breakdown_t6_threshold_write"
