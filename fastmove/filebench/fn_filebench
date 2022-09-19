@@ -5,9 +5,9 @@ S16K=16384
 S32K=32768
 S64K=65536
 INF=1000000000
-RUNTIME=10
+RUNTIME=30
 
-fb_thread="1 2 4 8 16"
+fb_thread="1"
 
 run_filebench() {
     HALF_RUNTIME=$((RUNTIME/2))
@@ -15,7 +15,7 @@ run_filebench() {
     for thread in $fb_thread;do
         echo fileserver
         ${BENCH_DIR}/gen_filebench.py fileserver -d $DATA_DIR \
-            -n 100000 -r 10 -m 20 -t $thread -i 1m -o /tmp/filebench_workload
+            -n 100000 -r $RUNTIME -m 20 -t $thread -i 1m -o /tmp/filebench_workload
         $numactl_cmd filebench -f /tmp/filebench_workload > $1-fileserver-t$thread
         #cat <(while ps -p $! > /dev/null; do
         #    ps -C filebench -o %cpu | tail -n +2 | awk '{sum+=$1} END {print sum}'

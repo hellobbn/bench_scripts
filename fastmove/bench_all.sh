@@ -14,6 +14,8 @@ source misc/fn_misc
 
 export MOUNT_DIR=/mnt/pmem
 
+export PATH=/usr/local/bin:$PATH
+
 ######################################################################
 #
 # To add a benchmark, declare a fn_${BENCH_NAME} in a folder
@@ -62,12 +64,11 @@ export MOUNT_DIR=/mnt/pmem
 # If you have a already defined bench profile in profile directory
 # put it here
 
-# setting_bench_profile="breakdown_sg breakdown_submit_opt breakdown_threshold_write breakdown_threshold_read breakdown_split breakdown_concurrency"
-setting_bench_profile="breakdown_t0_cpu breakdown_t6_concurrency"
-# setting_bench_profile="breakdown_t6_concurrency"
-# setting_bench_profile="breakdown_t0_cpu"
-# setting_bench_profile="offset"
-
+# setting_bench_profile="breakdown_t0_cpu breakdown_t7_threshold_write breakdown_t3_concurrency breakdown_t4_scatter breakdown_t5_bulkreadsplit breakdown_t6_threshold_read"
+setting_bench_profile="breakdown_t7_threshold_write"
+# setting_bench_profile="breakdown_t3_concurrency"
+# setting_bench_profile="breakdown_t6_threshold_read breakdown_t7_threshold_write"
+# setting_bench_profile="breakdown_t2_scatter breakdown_t4_bulkreadsplit breakdown_t6_threshold_write"
 
 #
 # Main benchmark function
@@ -158,19 +159,19 @@ function prepare_benchmark {
         fi
 
         # sysctl accel.watermark=$8
-        sysctl accel.dbg-mask=1
+        sysctl accel.dbg-mask=0x1
         sysctl accel.ddio=0
         sysctl accel.sync-wait=1
-        sysctl accel.local-read=32768
-        sysctl accel.local-write=16384
+        sysctl accel.local-read=$6
+        sysctl accel.local-write=$5
         # sysctl accel.main-switch=$9
         # sysctl accel.worker-switch=${10}
         /root/tpcc-mysql/disable-ddio
         sysctl accel.chunks=$7
         sysctl accel.user-nums=${12}
         sysctl accel.scatter=${11}
-        sysctl accel.remote-read=32768
-        sysctl accel.remote-write=16384
+        sysctl accel.remote-read=${13}
+        sysctl accel.remote-write=${14}
     fi
     if [ $1 -eq 0 ]; then
         echo "<== Setting for non-stripe target"

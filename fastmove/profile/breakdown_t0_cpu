@@ -3,13 +3,13 @@
 # Breakdown: CPU
 
 setting_bench="filebench"
-setting_fs="xfs"
-setting_skt_setup="DS SS"
+setting_fs="nova"
+setting_skt_setup="SS"
 setting_method_setup="CPU"
 setting_write_thresh="16384"
 setting_read_thresh="65536"
 setting_watermark="10000" # Deprecated
-setting_user_nums="8"
+setting_user_nums="4"
 setting_chunk="2"
 setting_main_wr="0" # Deprecated
 setting_worker_wr="1" # Deprecated
