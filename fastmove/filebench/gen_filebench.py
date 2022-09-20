@@ -6,10 +6,10 @@ FILESERVER_TEMPLATE="""
 set $dir=%s
 set $nfiles=%d
 set $meandirwidth=%d
-set $filesize=cvar(type=cvar-weibull,parameters=shape:1.0;scale:65536,min=4096,max=1048576,round=64)
+set $filesize=cvar(type=cvar-gamma,parameters=mean:2097152;gamma:1.5)
 set $nthreads=%d
 set $iosize=1m
-set $meanappendsize=cvar(type=cvar-gamma,parameters=mean:32768;gamma:1.5,min=4096,max=1048576,round=64)
+set $meanappendsize=cvar(type=cvar-gamma,parameters=mean:262144;gamma:1.5,min=4096,max=1048576,round=64)
 set $runtime=%d
 
 define fileset name=bigfileset,path=$dir,size=$filesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
