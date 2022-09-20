@@ -8,7 +8,7 @@ set $nfiles=%d
 set $meandirwidth=%d
 set $filesize=cvar(type=cvar-gamma,parameters=mean:2097152;gamma:1.5)
 set $nthreads=%d
-set $iosize=cvar(type=cvar-gamma,parameters=mean:262144;gamma:1.5,min=4096,max=1048576,round=64)
+set $iosize=1m
 set $meanappendsize=cvar(type=cvar-gamma,parameters=mean:262144;gamma:1.5,min=4096,max=1048576,round=64)
 set $runtime=%d
 
