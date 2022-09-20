@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Breakdown:
-#  +DMA +load_balancing +concurrency_control +remapping_scatter +bulk_read_split -threshold_read
-#  -threshold_write
+#  +DMA +load_balancing +concurrency_control +remapping_scatter +bulk_read_split +threshold_read +threshold_write
 
 # Not Viable for test
 # echo "Not viable for test!"
