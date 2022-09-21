@@ -6,10 +6,10 @@ FILESERVER_TEMPLATE="""
 set $dir=%s
 set $nfiles=%d
 set $meandirwidth=%d
-set $filesize=cvar(type=cvar-gamma,parameters=mean:2097152;gamma:1.5)
+set $filesize=256k
 set $nthreads=%d
 set $iosize=1m
-set $meanappendsize=cvar(type=cvar-gamma,parameters=mean:262144;gamma:1.5,min=4096,max=1048576,round=64)
+set $meanappendsize=8k
 set $runtime=%d
 
 define fileset name=bigfileset,path=$dir,size=$filesize,entries=$nfiles,dirwidth=$meandirwidth,prealloc=80
@@ -23,6 +23,13 @@ define process name=filereader,instances=1
     flowop closefile name=closefile1,fd=1
     flowop openfile name=openfile1,filesetname=bigfileset,fd=1
     flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
+    flowop read name=readfile1,iosize=$meanappendsize,fd=1
+    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
+    flowop read name=readfile1,iosize=$meanappendsize,fd=1
+    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
+    flowop read name=readfile1,iosize=$meanappendsize,fd=1
+    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
+    flowop read name=readfile1,iosize=$meanappendsize,fd=1
     flowop closefile name=closefile2,fd=1
     flowop openfile name=openfile2,filesetname=bigfileset,fd=1
     flowop readwholefile name=readfile1,fd=1,iosize=$iosize
