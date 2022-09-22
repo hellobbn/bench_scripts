@@ -22,14 +22,14 @@ define process name=filereader,instances=1
     flowop writewholefile name=wrtfile1,srcfd=1,fd=1,iosize=$iosize
     flowop closefile name=closefile1,fd=1
     flowop openfile name=openfile1,filesetname=bigfileset,fd=1
-    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
+    flowop appendfile name=appendfilerand1,iosize=$meanappendsize,fd=1
     flowop read name=readfile1,iosize=$meanappendsize,fd=1
-    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
-    flowop read name=readfile1,iosize=$meanappendsize,fd=1
-    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
-    flowop read name=readfile1,iosize=$meanappendsize,fd=1
-    flowop appendfilerand name=appendfilerand1,iosize=$meanappendsize,fd=1
-    flowop read name=readfile1,iosize=$meanappendsize,fd=1
+    flowop appendfile name=appendfilerand2,iosize=$meanappendsize,fd=1
+    flowop read name=readfile2,iosize=$meanappendsize,fd=1
+    flowop appendfile name=appendfilerand3,iosize=$meanappendsize,fd=1
+    flowop read name=readfile3,iosize=$meanappendsize,fd=1
+    flowop appendfile name=appendfilerand4,iosize=$meanappendsize,fd=1
+    flowop read name=readfile4,iosize=$meanappendsize,fd=1
     flowop closefile name=closefile2,fd=1
     flowop openfile name=openfile2,filesetname=bigfileset,fd=1
     flowop readwholefile name=readfile1,fd=1,iosize=$iosize
