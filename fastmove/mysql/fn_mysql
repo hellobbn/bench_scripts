@@ -33,7 +33,9 @@ function setup_single_bench {
 }
 
 function bench_single_main {
+  cat /proc/`pidof mysqld`/stat > $1_proc_mysql_before
   $numactl_cmd /root/tpcc-mysql/tpcc_start -h 127.0.0.1 -P 3306 -d tpcc5000 -u root -p "" -w 5000 -c 14 -r 120 -l 600 -i 10 | tee $1
+  cat /proc/`pidof mysqld`/stat > $1_proc_mysql_after
 }
 
 function stop_single_bench {

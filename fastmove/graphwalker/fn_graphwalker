@@ -29,10 +29,12 @@ function bench_single_main {
       walkspersource 2000 \
       maxwalklength 20 \
       prob 0.2 >$NAME &
+    cat /proc/`pidof msppr`/stat > $NAME-msppr-$repeat-proc-before
     WORK_PID=$!
     while ps -p $WORK_PID >/dev/null; do
       sleep 1
     done
+    cat /proc/`pidof msppr`/stat > $NAME-msppr-$repeat-proc-after
     kill $BPF_PID
 
     NAME=$PREFIX-graphlet-$repeat
@@ -45,10 +47,12 @@ function bench_single_main {
       R 10000 \
       L 4 \
       prob 0.2 >$NAME &
+    cat /proc/`pidof msppr`/stat > $NAME-graphlet-$repeat-proc-before
     WORK_PID=$!
     while ps -p $WORK_PID >/dev/null; do
       sleep 1
     done
+    cat /proc/`pidof msppr`/stat > $NAME-graphlet-$repeat-proc-after
     kill $BPF_PID
 
     NAME=$PREFIX-simrank-$repeat
@@ -62,10 +66,12 @@ function bench_single_main {
       R 1400 \
       L 11 \
       prob 0.2 >$NAME &
+    cat /proc/`pidof msppr`/stat > $NAME-simrank-$repeat-proc-before
     WORK_PID=$!
     while ps -p $WORK_PID >/dev/null; do
       sleep 1
     done
+    cat /proc/`pidof msppr`/stat > $NAME-simrank-$repeat-proc-after
     kill $BPF_PID
   done
 }
