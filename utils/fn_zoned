@@ -1,0 +1,79 @@
+#!/bin/bash
+
+#####################
+# Generic
+#####################
+function check_umount {
+	mounted=$(mount | grep "$1" || /bin/true)
+	if [[ -n ${mounted} ]]; then
+		sudo umount "$1"
+	fi
+}
+
+function zoned_cleanup {
+	check_umount "${CONFIG_CONV_DEV}"
+	check_umount "${CONFIG_ZONED_DEV}"
+	check_umount "/dev/mapper/${CONFIG_DM_ZONED_DEV_NAME}"
+	sudo dmzadm --stop "${CONFIG_ZONED_DEV}" || true
+}
+
+#####################
+# dm-zoned
+#####################
+# $1: The filesystem to use
+#####################
+function zoned_format_dm-zoned {
+	zoned_cleanup
+
+	if [[ -z "$1" ]]; then
+		fs="ext4"
+	else
+		fs="$1"
+	fi
+
+	if [[ "${CONFIG_ZONED_CONV}" == "1" ]]; then
+		sudo dmzadm --format --force "${CONFIG_ZONED_DEV}"
+		sudo dmzadm --start "${CONFIG_ZONED_DEV}"
+	else
+		sudo dmzadm --format "${CONFIG_CONV_DEV}" "${CONFIG_ZONED_DEV}" --force
+		sudo dmzadm --start "${CONFIG_CONV_DEV}" "${CONFIG_ZONED_DEV}"
+	fi
+
+	dev_name=$(sudo dmesg | grep -i zoned | tail -1 | cut -d ' ' -f 4 | sed 's/[():]//g')
+	if [[ -z ${dev_name} ]]; then
+		echo "ERR: Not found a zoned dev"
+		exit 1
+	fi
+	dev_name="/dev/mapper/${dev_name}"
+
+	normal_format_"${fs}" "${dev_name}"
+}
+
+function zoned_mount_dm-zoned {
+	sudo mount "${dev_name}" "${CONFIG_MOUNTPOINT}"
+}
+
+#####################
+# F2FS
+#####################
+function zoned_format_f2fs {
+	zoned_cleanup
+
+	if [[ "${CONFIG_ZONED_CONV}" == "1" ]]; then
+		sudo mkfs.f2fs -fm "${CONFIG_ZONED_DEV}"
+	else
+		sudo mkfs.f2fs -f -m -c "${CONFIG_ZONED_DEV}" "${CONFIG_CONV_DEV}"
+	fi
+}
+
+function zoned_mount_f2fs {
+	if [[ ! -d "${CONFIG_MOUNTPOINT}" ]]; then
+		sudo mkdir "${CONFIG_MOUNTPOINT}"
+	fi
+
+	if [[ "${CONFIG_ZONED_CONV}" == "1" ]]; then
+		sudo mount -t f2fs "${CONFIG_ZONED_DEV}" "${CONFIG_MOUNTPOINT}"
+	else
+		sudo mount -t f2fs "${CONFIG_CONV_DEV}" "${CONFIG_MOUNTPOINT}"
+	fi
+}
