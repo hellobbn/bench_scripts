@@ -1,0 +1,6 @@
+#!/usr/bin/env bpftrace
+
+profile:hz:99
+{
+    @[kstack] = count();
+}

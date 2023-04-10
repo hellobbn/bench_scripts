@@ -1,0 +1,40 @@
+#!/usr/bin/env bpftrace
+
+// Total VFS read time
+kprobe:vfs_read / comm == "fio" /
+{
+    @vfs_read_start[tid] = nsecs;
+}
+
+kretprobe:vfs_read / @vfs_read_start[tid] != 0 /
+{
+    @vfs_read_time[comm] = hist(nsecs - @vfs_read_start[tid]);
+    @vfs_read_time_total[comm] += (nsecs - @vfs_read_start[tid]);
+    delete(@vfs_read_start[tid]);
+}
+
+// dmz is for dm-zoned target
+kprobe:dmz_map / comm == "fio" /
+{
+    @dmz_map_start[tid] = nsecs;
+}
+
+kretprobe:dmz_map / @dmz_map_start[tid] != 0 /
+{
+    @dmz_map_time[comm] = hist(nsecs - @dmz_map_start[tid]);
+    @dmz_map_time_total[comm] += (nsecs - @dmz_map_start[tid]);
+    delete(@dmz_map_start[tid]);
+}
+
+// nvme_queue_rq is for nvme target
+kprobe:nvme_queue_rq / comm == "fio" /
+{
+    @nvme_queue_rq_start[tid] = nsecs;
+}
+
+kretprobe:nvme_queue_rq / @nvme_queue_rq_start[tid] != 0 /
+{
+    @nvme_queue_rq_time[comm] = hist(nsecs - @nvme_queue_rq_start[tid]);
+    @nvme_queue_rq_time_total[comm] += (nsecs - @nvme_queue_rq_start[tid]);
+    delete(@nvme_queue_rq_start[tid]);
+}

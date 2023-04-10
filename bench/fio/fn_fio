@@ -1,28 +1,33 @@
 #!/bin/bash
 
-SETTING_FIO_PATTERN="write read randread randwrite"
-SETTING_FIO_BSIZE="4k 16k 64k 256k 1m"
-SETTING_FIO_THREAD="1 2 4 8"
+SETTING_FIO_PATTERN="randread randwrite"
+SETTING_FIO_BSIZE="4k 16k 256k 1m"
+SETTING_FIO_THREAD="1 2 4"
+SETTING_FIO_RUNTIME="60"
+SETTING_FIO_SIZE="1G"
 
 function bench_single_main {
-	for pattern in $SETTING_FIO_PATTERN; do
-		for size in $SETTING_FIO_BSIZE; do
-			for thread in $SETTING_FIO_THREAD; do
-				numactl -N 0 -m 0 fio --name=benchmark \
-					--rw="$pattern" \
-					--numjobs="$thread" \
-					--ioengine=psync \
-					--bs="$size" \
-					--runtime=60 \
-					--time_based \
-					--group_reporting \
-					--output="$1"-"$pattern"-"$size"-t"$thread".log \
-					--directory="${CONFIG_MOUNTPOINT}" \
-					--size=1G \
-					--blockalign=4096 \
-					--direct=1 \
-					--mem_align=4096
-			done
-		done
-	done
+    for pattern in $SETTING_FIO_PATTERN; do
+        for size in $SETTING_FIO_BSIZE; do
+            for thread in $SETTING_FIO_THREAD; do
+                sleep 2 && sudo bpftrace ${BENCH_DIR}/time_trace.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-time.log &
+                sleep 2 && sudo bpftrace ${BENCH_DIR}/call_path.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-path.log &
+                numactl -N 0 -m 0 perf record -g -F 99 -o $1-"$pattern"-"$size"-t"$thread"-perf.log -- fio --name=benchmark \
+                    --rw="$pattern" \
+                    --numjobs="$thread" \
+                    --ioengine=psync \
+                    --bs="$size" \
+                    --runtime="${SETTING_FIO_RUNTIME}" \
+                    --time_based \
+                    --group_reporting \
+                    --output="$1"-"$pattern"-"$size"-t"$thread".log \
+                    --directory="${CONFIG_MOUNTPOINT}" \
+                    --size="${SETTING_FIO_SIZE}" \
+                    --blockalign=4096 \
+                    --mem_align=4096
+                sudo pkill bpftrace
+                wait
+            done
+        done
+    done
 }

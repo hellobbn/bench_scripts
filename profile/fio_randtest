@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export setting_bench="fio"
+export setting_fs="dm-zoned f2fs"
+export setting_dmzoned_fs="ext4 xfs"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
-export setting_bench="fio_raw"
-export setting_fs="dm-zoned f2fs"
-export setting_dmzoned_fs="ext4 f2fs"
+# export setting_bench="mysql mysql_perf"
+# export setting_bench="mysql mysql_trace"
+export setting_bench="fio"
+# export setting_fs="dm-zoned f2fs"
+export setting_fs="f2fs dm-zoned"
+# export setting_dmzoned_fs="f2fs ext4 xfs"
+export setting_dmzoned_fs="ext4"

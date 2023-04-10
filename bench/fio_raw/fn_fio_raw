@@ -1,32 +1,32 @@
 #!/bin/bash
 
-SETTING_FIO_PATTERN="write read randread randwrite"
+SETTING_FIO_PATTERN="randread randwrite"
 SETTING_FIO_BSIZE="4k 16k 64k 256k 1m"
 SETTING_FIO_THREAD="1 2 4 8"
 
 function bench_single_main {
-	for pattern in $SETTING_FIO_PATTERN; do
-		for size in $SETTING_FIO_BSIZE; do
-			for thread in $SETTING_FIO_THREAD; do
-				sudo blkzone reset "${CONFIG_ZONED_DEV}"
-				numactl -N 0 -m 0 fio --name=benchmark \
-					--zonemode=zbd \
-					--filename="${CONFIG_ZONED_DEV}" \
-					--ioengine=psync \
-					--rw="$pattern" \
-					--numjobs="$thread" \
-					--bs="$size" \
-					--runtime=60 \
-					--time_based \
-					--group_reporting \
-					--output="$1"-"$pattern"-"$size"-t"$thread".log \
-					--directory="${CONFIG_MOUNTPOINT}" \
-					--size=2z \
-					--offset_increment=2z \
-					--blockalign=4096 \
-					--direct=1 \
-					--mem_align=4096
-			done
-		done
-	done
+    for pattern in $SETTING_FIO_PATTERN; do
+        for size in $SETTING_FIO_BSIZE; do
+            for thread in $SETTING_FIO_THREAD; do
+                sudo blkzone reset "${CONFIG_ZONED_DEV}"
+                numactl -N 0 -m 0 fio --name=benchmark \
+                    --zonemode=zbd \
+                    --filename="${CONFIG_ZONED_DEV}" \
+                    --ioengine=psync \
+                    --rw="$pattern" \
+                    --numjobs="$thread" \
+                    --bs="$size" \
+                    --runtime=60 \
+                    --time_based \
+                    --group_reporting \
+                    --output="$1"-"$pattern"-"$size"-t"$thread".log \
+                    --directory="${CONFIG_MOUNTPOINT}" \
+                    --size=2z \
+                    --offset_increment=2z \
+                    --blockalign=4096 \
+                    --direct=1 \
+                    --mem_align=4096
+            done
+        done
+    done
 }
