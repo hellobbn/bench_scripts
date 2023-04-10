@@ -5,6 +5,7 @@ SETTING_FIO_BSIZE="4k 16k 64k 256k 1m"
 SETTING_FIO_THREAD="1 2 4 8"
 
 function bench_single_main {
+    echo "fn_fio_raw is deprecated."
     for pattern in $SETTING_FIO_PATTERN; do
         for size in $SETTING_FIO_BSIZE; do
             for thread in $SETTING_FIO_THREAD; do
@@ -22,10 +23,10 @@ function bench_single_main {
                     --output="$1"-"$pattern"-"$size"-t"$thread".log \
                     --directory="${CONFIG_MOUNTPOINT}" \
                     --size=2z \
-                    --offset_increment=2z \
-                    --blockalign=4096 \
+                    --offset_increment=4z \
                     --direct=1 \
-                    --mem_align=4096
+                    --mem_align=4096 \
+                    --job_max_open_zones=1
             done
         done
     done

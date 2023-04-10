@@ -60,6 +60,8 @@ function run_prepare {
     zoned_mount_"$1"
 }
 
+setup_loop
+
 for profile in $CONFIG_BENCH_PROFILE; do
     # Every profile has its own directory
     dir_name="${result_dir}/$profile"
