@@ -10,10 +10,10 @@
 function do_for_all_tags {
     idx=0
     _tag_ret=0
-    for i in $(find result -maxdepth 1 -type d); do
+    for i in $(find result -maxdepth 1 -type d | sort); do
         if [[ -f $i/bench_tag ]]; then
-            tag=$(cat $i/bench_tag)
-            $1 "$idx" "$tag" "$i"
+            this_tag=$(cat $i/bench_tag)
+            $1 "$idx" "$this_tag" "$i"
             idx=$((idx + 1))
 
             if [[ $_tag_ret -eq 1 ]]; then
@@ -86,11 +86,11 @@ function is_tag_exist_by_idx {
 }
 
 function print_a_tag {
-    printf "%-4s | %-15s | %-15s\n" "$1" "$2" "$3"
+    printf "%-4s | %-40s | %-15s\n" "$1" "$2" "$3"
 }
 
 function print_all_tags {
-    printf "\033[1;34m%-4s | \033[1;34m%-30s | %-15s\033[0m\n" "idx" "tag" "dir name"
+    printf "\033[1;34m%-4s | \033[1;34m%-40s | %-15s\033[0m\n" "idx" "tag" "dir name"
     do_for_all_tags print_a_tag
 }
 
@@ -164,16 +164,16 @@ function ask_for_tag {
     fi
     case "$response" in
     [yY][eE][sS] | [yY])
-        read -r -p "Enter the tag: " tag
+        read -r -p "Enter the tag: " input_tag
         ;;
     *)
-        tag=$(date +%Y-%m-%d_%H-%M-%S)
+        input_tag=$(date +%Y-%m-%d_%H-%M-%S)
         ;;
     esac
 
     loop_inner=1
     while [[ $loop_inner -eq 1 ]]; do
-        is_tag_exist "$tag"
+        is_tag_exist "$input_tag"
         if [[ $_tag_exist -eq 1 ]]; then
             read -r -p "This tag already exist, move (M) the existing one, delete (D) or rename (R) this tag? " response
             if [[ $response != [mMrRdD] ]]; then
@@ -184,17 +184,17 @@ function ask_for_tag {
             loop_inner=0
             if [[ $response == [mM] ]]; then
                 read -r -p "Move the old tag: " new_old_tag_name
-                rename_tag "$tag" "$new_old_tag_name"
+                rename_tag "$input_tag" "$new_old_tag_name"
             elif [[ $response == [dD] ]]; then
-                delete_tag "$tag"
+                delete_tag "$input_tag"
                 loop_inner=0
             else
-                read -r -p "Rename the tag: " tag
+                read -r -p "Rename the tag: " input_tag
                 continue
             fi
         fi
 
-        echo "$tag" >>"${result_dir}"/bench_tag
+        echo "$input_tag" >>"${result_dir}"/bench_tag
         break
     done
 }
@@ -248,3 +248,4 @@ function operate_tag {
         done
     done
 }
+
