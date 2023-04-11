@@ -15,8 +15,8 @@ function bench_single_main {
                 zoned_format_"${bench_fs}"
                 zoned_mount_"${bench_fs}"
                 sleep 2
-                sleep 2 && sudo bpftrace ${BENCH_DIR}/time_trace.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-time.log &
-                sleep 2 && sudo bpftrace ${BENCH_DIR}/call_path.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-path.log &
+                sleep 2 && sudo bpftrace ${BPFTRACE_DIR}/time_trace.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-time.log &
+                sleep 2 && sudo bpftrace ${BPFTRACE_DIR}/call_path.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-path.log &
                 numactl -N 0 -m 0 perf record -g -F 99 -o $1-"$pattern"-"$size"-t"$thread"-perf.log -- fio --name=benchmark \
                     --rw="$pattern" \
                     --numjobs="$thread" \
