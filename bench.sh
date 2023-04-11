@@ -27,12 +27,12 @@ export result_dir="result/result_${date_suffix}"
 
 # Read from config
 spec_config=setup_$(hostname)
-if [[ -f "common/${spec_config}" ]]; then
+if [[ -f "config/${spec_config}" ]]; then
     # shellcheck source=common/setup_bbnpm
-    source "common/${spec_config}"
+    source "config/${spec_config}"
 else
     # shellcheck source=common/setup
-    source common/setup
+    source "config/setup"
 fi
 
 # Import util functions
