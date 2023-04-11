@@ -10,6 +10,7 @@ kretprobe:vfs_read / @vfs_read_start[tid] != 0 /
 {
     @vfs_read_time[comm] = hist(nsecs - @vfs_read_start[tid]);
     @vfs_read_time_total[comm] += (nsecs - @vfs_read_start[tid]);
+    @vfs_read_count[comm] = count();
     delete(@vfs_read_start[tid]);
 }
 
@@ -23,6 +24,7 @@ kretprobe:dmz_map / @dmz_map_start[tid] != 0 /
 {
     @dmz_map_time[comm] = hist(nsecs - @dmz_map_start[tid]);
     @dmz_map_time_total[comm] += (nsecs - @dmz_map_start[tid]);
+    @dmz_map_count[comm] = count();
     delete(@dmz_map_start[tid]);
 }
 
@@ -36,5 +38,20 @@ kretprobe:nvme_queue_rq / @nvme_queue_rq_start[tid] != 0 /
 {
     @nvme_queue_rq_time[comm] = hist(nsecs - @nvme_queue_rq_start[tid]);
     @nvme_queue_rq_time_total[comm] += (nsecs - @nvme_queue_rq_start[tid]);
+    @nvme_queue_rq_count[comm] = count();
     delete(@nvme_queue_rq_start[tid]);
+}
+
+// filemap_alloc_folio
+kprobe:filemap_alloc_folio / comm == "fio" /
+{
+    @filemap_alloc_folio_start[tid] = nsecs;
+}
+
+kretprobe:filemap_alloc_folio / @filemap_alloc_folio_start[tid] != 0 /
+{
+    @filemap_alloc_folio_time[comm] = hist(nsecs - @filemap_alloc_folio_start[tid]);
+    @filemap_alloc_folio_time_total[comm] += (nsecs - @filemap_alloc_folio_start[tid]);
+    @filemap_alloc_folio_count[comm] = count();
+    delete(@filemap_alloc_folio_start[tid]);
 }

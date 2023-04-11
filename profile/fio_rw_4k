@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export setting_bench="fio"
-export setting_fs="dm-zoned"
+export setting_fs="f2fs dm-zoned"
 export setting_dmzoned_fs="ext4"
 
 # FIO profile
