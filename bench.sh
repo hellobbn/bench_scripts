@@ -21,7 +21,7 @@ export date_suffix
 export BPFTRACE_DIR
 
 LOCAL_DIR=$(pwd)
-date_suffix=$(date --iso-8601=seconds)
+date_suffix=$(date +%Y%m%d_%H%M%S)
 BPFTRACE_DIR="${LOCAL_DIR}/utils/bpftrace"
 export result_dir="result/result_${date_suffix}"
 
