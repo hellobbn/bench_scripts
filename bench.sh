@@ -35,6 +35,11 @@ else
     source "config/setup"
 fi
 
+# The arguments are the profile to run
+if [[ $# -gt 0 ]]; then
+    CONFIG_BENCH_PROFILE="$*"
+fi
+
 # Import util functions
 source utils/fn_fs
 source utils/fn_util
