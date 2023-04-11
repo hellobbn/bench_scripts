@@ -1,11 +1,5 @@
 #!/bin/bash
 
-SETTING_FIO_PATTERN="randread randwrite"
-SETTING_FIO_BSIZE="4k 16k 256k 1m"
-SETTING_FIO_THREAD="1 2 4"
-SETTING_FIO_RUNTIME="60"
-SETTING_FIO_SIZE="1G"
-
 function bench_single_main {
     for pattern in $SETTING_FIO_PATTERN; do
         for size in $SETTING_FIO_BSIZE; do

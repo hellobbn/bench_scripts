@@ -1,9 +1,18 @@
 #!/bin/bash
 
-# export setting_bench="mysql mysql_perf"
-# export setting_bench="mysql mysql_trace"
 export setting_bench="fio"
-# export setting_fs="dm-zoned f2fs"
-export setting_fs="f2fs dm-zoned"
-# export setting_dmzoned_fs="f2fs ext4 xfs"
+export setting_fs="dm-zoned"
 export setting_dmzoned_fs="ext4"
+
+## FIO Setting
+SETTING_FIO_PATTERN="read write randread randwrite"
+SETTING_FIO_BSIZE="4k"
+SETTING_FIO_THREAD="1 2"
+SETTING_FIO_RUNTIME="20"
+SETTING_FIO_SIZE="1G"
+
+## Mysql Setting
+TPCC_DIR="/home/bbn/tpcc-mysql/"
+MYSQL_CONF="/etc/my.cnf"
+TPCC_WH=100
+TPCC_DB_NAME="tpcc${TPCC_WH}"

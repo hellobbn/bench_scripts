@@ -1,10 +1,5 @@
 #!/bin/bash
 
-TPCC_DIR="/home/bbn/tpcc-mysql/"
-MYSQL_CONF="/etc/my.cnf"
-TPCC_WH=100
-TPCC_DB_NAME="tpcc${TPCC_WH}"
-
 function bench_single_main {
     # Change MySQL Configuration
     echo "==> monitor-malloc-default-$3"
