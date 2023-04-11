@@ -22,8 +22,7 @@ function setup_loop {
 function inline_func {
     while read line; do
     if [[ "$line" =~ (\.|source).+ ]]; then
-        file="$(echo $line | cut -d' ' -f2)"
-        file=${file/$\{LOCAL_DIR\}/$LOCAL_DIR}
+        file="$(echo $line | cut -d' ' -f2 | envsubst)"
         echo "$(cat "$file")"
     else
         echo "$line"
