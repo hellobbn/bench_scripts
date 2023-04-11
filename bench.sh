@@ -18,13 +18,22 @@ export MOUNT_DIR=/mnt/pmem
 export PATH=/usr/local/bin:$PATH
 export LOCAL_DIR
 export date_suffix
+export BPFTRACE_DIR
 
 LOCAL_DIR=$(pwd)
 date_suffix=$(date --iso-8601=seconds)
+BPFTRACE_DIR="${LOCAL_DIR}/utils/bpftrace"
 export result_dir="result/result_${date_suffix}"
 
 # Read from config
-source common/setup
+spec_config=setup_$(hostname)
+if [[ -f "common/${spec_config}" ]]; then
+    # shellcheck source=common/setup_bbnpm
+    source "common/${spec_config}"
+else
+    # shellcheck source=common/setup
+    source common/setup
+fi
 
 # Import util functions
 source utils/fn_fs
