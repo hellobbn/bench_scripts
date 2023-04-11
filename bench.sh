@@ -79,9 +79,11 @@ setup_loop
 for profile in $CONFIG_BENCH_PROFILE; do
     # Every profile has its own directory
     dir_name="${result_dir}/$profile"
+    mkdir -p "${dir_name}"
 
     # shellcheck source=profile/main
     source profile/"$profile"
+    inline_func profile/"$profile" > "$dir_name/profile"
 
     init_profile "$setting_bench"
 
@@ -126,6 +128,4 @@ done     # profile
 
 rm result/latest || /bin/true
 ln -s $LOCAL_DIR/"$result_dir" $LOCAL_DIR/"result/latest"
-mkdir -p $LOCAL_DIR/"$result_dir"/configuration
-echo "$CONFIG_BENCH_PROFILE" > $LOCAL_DIR/"$result_dir"/configuration/profile
 ask_for_tag

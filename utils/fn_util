@@ -18,3 +18,15 @@ function setup_loop {
         export CONFIG_CONV_DEV=$(sudo losetup -b 4096 --find --show "${loop_filename}")
     fi
 }
+
+function inline_func {
+    while read line; do
+    if [[ "$line" =~ (\.|source).+ ]]; then
+        file="$(echo $line | cut -d' ' -f2)"
+        file=${file/$\{LOCAL_DIR\}/$LOCAL_DIR}
+        echo "$(cat "$file")"
+    else
+        echo "$line"
+    fi
+    done < "$1"
+}
