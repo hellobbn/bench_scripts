@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## FIO Setting
+SETTING_FIO_PATTERN="read write randread randwrite"
+SETTING_FIO_BSIZE="4k"
+SETTING_FIO_THREAD="1 2"
+SETTING_FIO_RUNTIME="20"
+SETTING_FIO_SIZE="1G"

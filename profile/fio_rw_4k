@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export setting_bench="fio"
+export setting_fs="dm-zoned"
+export setting_dmzoned_fs="ext4"
+
+# FIO profile
+source ${LOCAL_DIR}/profile/bench/fio/fio_rw_4k
