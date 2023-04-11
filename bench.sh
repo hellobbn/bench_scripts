@@ -11,7 +11,7 @@ stty -echoctl
 set -e
 
 # print debug information print
-set -x
+# set -x
 
 # Export common benchmark variables
 export MOUNT_DIR=/mnt/pmem
