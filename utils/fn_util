@@ -15,6 +15,6 @@ function setup_loop {
         fi
         sudo dd if=/dev/zero of="${loop_filename}" bs=1M count="$((CONFIG_LOOP_SIZE * 1024))"
         sudo losetup -D
-        export CONFIG_CONV_DEV=$(sudo losetup --find --show "${loop_filename}")
+        export CONFIG_CONV_DEV=$(sudo losetup -b 4096 --find --show "${loop_filename}")
     fi
 }
