@@ -23,7 +23,7 @@ export CONFIG_MOUNTPOINT=/mnt/zns
 export CONFIG_DM_ZONED_DEV_NAME=dmz-deadbeef
 
 ## Bench profile
-export CONFIG_BENCH_PROFILE="main"
+export CONFIG_BENCH_PROFILE="fio_rw_4k"
 
 ## Use a loop device for conv dev, this will reset CONFIG_CONV_DEV!
 export CONFIG_USE_LOOP_AS_CONV=1
