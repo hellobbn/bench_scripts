@@ -12,13 +12,15 @@ if [[ ! -d $dir ]]; then
     exit 1
 fi
 
-# Use $2 (if exist) for query
-if [[ -n $2 ]]; then
-    query="$2"
-    grep_str=$(grep 'bw=' "$dir"/**/*-"$query"-* | tr -s ' ' | sort -h)
-else
-    grep_str=$(grep 'bw=' "$dir"/**/* | tr -s ' ' | sort -h)
+# Use the remaining arguments (if exist) for query
+if [[ $# -gt 1 ]]; then
+    query=( ${@:2} )
 fi
+
+grep_str=$(grep 'bw=' "$dir"/**/* | tr -s ' ' | sort -h)
+for q in "${query[@]}"; do
+    grep_str=$(echo "$grep_str" | grep -E "[_-]$q[-.]")
+done
 
 type=$(echo "$grep_str" | cut -d ' ' -f 1 | rev | cut -d '/' -f 1 | rev | sed 's/fio-//' | sed 's/\.log//' | sed 's/\://')
 bw=$(echo "$grep_str" | cut -d ' ' -f 3 | sed 's/bw=//' | sed 's/MiB\/s//')
