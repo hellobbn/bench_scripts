@@ -127,6 +127,8 @@ for profile in $CONFIG_BENCH_PROFILE; do
 done     # profile
 
 rm result/latest || /bin/true
-chown -R $USER:$USER "$LOCAL_DIR"/result
+if [[ -n $CONFIG_USER ]]; then
+    chown -R $CONFIG_USER:$CONFIG_USER "$LOCAL_DIR"/result
+fi
 ln -s $LOCAL_DIR/"$result_dir" $LOCAL_DIR/"result/latest"
 ask_for_tag

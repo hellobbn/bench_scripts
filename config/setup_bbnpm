@@ -36,3 +36,6 @@ export CONFIG_LOOP_IN_RAM=1
 
 ## Perf
 export PATH=/home/bbn/linux/tools/perf:$PATH
+
+## User
+export CONFIG_USER=bbn
