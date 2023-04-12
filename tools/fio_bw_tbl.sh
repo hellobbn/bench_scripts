@@ -12,7 +12,14 @@ if [[ ! -d $dir ]]; then
     exit 1
 fi
 
-grep_str=$(grep 'bw=' "$dir"/*/* | tr -s ' ' | sort -h)
+# Use $2 (if exist) for query
+if [[ -n $2 ]]; then
+    query="$2"
+    grep_str=$(grep 'bw=' "$dir"/**/*-"$query"-* | tr -s ' ' | sort -h)
+else
+    grep_str=$(grep 'bw=' "$dir"/**/* | tr -s ' ' | sort -h)
+fi
+
 type=$(echo "$grep_str" | cut -d ' ' -f 1 | rev | cut -d '/' -f 1 | rev | sed 's/fio-//' | sed 's/\.log//' | sed 's/\://')
 bw=$(echo "$grep_str" | cut -d ' ' -f 3 | sed 's/bw=//' | sed 's/MiB\/s//')
 
