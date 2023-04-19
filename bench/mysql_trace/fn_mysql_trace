@@ -5,48 +5,17 @@ MYSQL_CONF="/etc/my.cnf"
 TPCC_WH=100
 TPCC_DB_NAME="tpcc${TPCC_WH}"
 
-function bench_single_main {
-    # Change MySQL Configuration
-    echo "==> monitor-malloc-default-$3"
-    printf "#\n# This group are read by MySQL server.\n# Use it for options that only the server (but not clients) should see\n#\n# For advice on how to change settings please see\n# http://dev.mysql.com/doc/refman/en/server-configuration-defaults.html\n#\n# Settings user and group are ignored when systemd is used.\n# If you need to run mysqld under a different user or group,\n# customize your systemd unit file for mysqld according to the\n# instructions in http://fedoraproject.org/wiki/Systemd\n" >${MYSQL_CONF}
-    printf "[mysqld]\ndatadir=${CONFIG_MOUNTPOINT}/mysql\n\ndefault_storage_engine=InnoDB\n" >>${MYSQL_CONF}
-    printf "innodb_io_capacity=1000000\n" >>${MYSQL_CONF}
-    printf "innodb_page_cleaners=4\n" >>${MYSQL_CONF}
-    printf "innodb_buffer_pool_size=60G\n# innodb_page_size=65536\n# innodb_flush_method=O_DIRECT\n# innodb_flush_sync=1\n# innodb_adaptive_flushing=1\n# innodb_flush_neighbors=0\n# innodb_max_dirty_pages_pct=90\n# innodb_max_dirty_pages_pct_lwm=10\nlower_case_table_names=1\n# large_pages=ON\n\n# [mysqld_safe]\n# malloc-lib=/usr/lib64/libjemalloc.so\n" >>${MYSQL_CONF}
+function mysql_hook {
+	pid_mysql=$(pidof mysqld)
+	sudo bpftrace ${BENCH_DIR}/call_path.bt $pid_mysql | tee $1-bpftrace.txt &
+}
 
-    sync
-    sleep 2
+function mysql_hook_end {
+	set +e
+	sudo killall bpftrace
+	set -e
+}
 
-    # Initialize MySQL
-    sudo mysqld --initialize-insecure
-
-    # Chown
-    sudo chown -R mysql:mysql ${CONFIG_MOUNTPOINT}/mysql
-
-    # Start MySQL
-    systemctl restart mysql
-
-    # Import MySQL DB
-    mysqladmin -u root create ${TPCC_DB_NAME}
-    mysql -u root ${TPCC_DB_NAME} <${LOCAL_DIR}/db/${TPCC_DB_NAME}.sql
-
-    # Sleep for some seconds
-    sleep 5
-
-    # Perf begin
-    pid_mysql=$(pidof mysqld)
-    # sleep 130 && sudo perf record -F 10 -o $1-mysql.perf -p $pid -- sleep 250 &
-    # sleep 130 && sudo perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep 250 &
-    # sleep 130 && sudo perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid sleep 20 2>&1 | tee $1-perf-stats.txt &
-    sudo bpftrace ${BENCH_DIR}/call_path.bt $pid_mysql | tee $1-bpftrace.txt &
-
-    $numactl_cmd ${TPCC_DIR}/tpcc_start -h 127.0.0.1 -P 3306 -d ${TPCC_DB_NAME} -u root -p "" -w ${TPCC_WH} -c 14 -r 120 -l 300 -i 10 | tee $1
-
-    # Perf end
-    set +e
-    sudo killall bpftrace
-    set -e
-
-    # Stop MySQL
-    sudo service mysql stop
+function bench_single_main_mysql_trace {
+	bench_single_main_mysql
 }

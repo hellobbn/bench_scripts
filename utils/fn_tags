@@ -8,19 +8,19 @@
 # The fun should set $_tag_ret to true if it found something and wants to break
 #
 function do_for_all_tags {
-    idx=0
-    _tag_ret=0
-    for i in $(find result -maxdepth 1 -type d | sort); do
-        if [[ -f $i/bench_tag ]]; then
-            this_tag=$(cat $i/bench_tag)
-            $1 "$idx" "$this_tag" "$i"
-            idx=$((idx + 1))
+	idx=0
+	_tag_ret=0
+	for i in $(find result -maxdepth 1 -type d | sort); do
+		if [[ -f $i/bench_tag ]]; then
+			this_tag=$(cat $i/bench_tag)
+			$1 "$idx" "$this_tag" "$i"
+			idx=$((idx + 1))
 
-            if [[ $_tag_ret -eq 1 ]]; then
-                break
-            fi
-        fi
-    done
+			if [[ $_tag_ret -eq 1 ]]; then
+				break
+			fi
+		fi
+	done
 }
 
 #
@@ -28,17 +28,17 @@ function do_for_all_tags {
 # Sets _tag_ret, _tag_tag, _tag_dir
 #
 function is_tag_match {
-    if [[ -z $_tag_match ]]; then
-        echo "is_tag_match called without var _tag_match set"
-        exit 1
-    fi
+	if [[ -z $_tag_match ]]; then
+		echo "is_tag_match called without var _tag_match set"
+		exit 1
+	fi
 
-    if [[ $2 == "$_tag_match" ]]; then
-        _tag_ret=1
-        _tag_idx="$1"
-        _tag_tag="$2"
-        _tag_dir="$3"
-    fi
+	if [[ $2 == "$_tag_match" ]]; then
+		_tag_ret=1
+		_tag_idx="$1"
+		_tag_tag="$2"
+		_tag_dir="$3"
+	fi
 }
 
 #
@@ -46,17 +46,17 @@ function is_tag_match {
 # Sets _tag_ret, _tag_tag, _tag_dir
 #
 function is_tag_match_by_idx {
-    if [[ -z $_tag_match_idx ]]; then
-        echo "is_tag_match_idx called without var _tag_match_idx set"
-        exit 1
-    fi
+	if [[ -z $_tag_match_idx ]]; then
+		echo "is_tag_match_idx called without var _tag_match_idx set"
+		exit 1
+	fi
 
-    if [[ $1 == "$_tag_match_idx" ]]; then
-        _tag_ret=1
-        _tag_idx="$1"
-        _tag_tag="$2"
-        _tag_dir="$3"
-    fi
+	if [[ $1 == "$_tag_match_idx" ]]; then
+		_tag_ret=1
+		_tag_idx="$1"
+		_tag_tag="$2"
+		_tag_dir="$3"
+	fi
 }
 
 #
@@ -64,12 +64,12 @@ function is_tag_match_by_idx {
 # Return: $_tag_exist
 #
 function is_tag_exist {
-    _tag_match="$1"
-    do_for_all_tags is_tag_match
-    _tag_exist=0
-    if [[ $_tag_ret -eq 1 ]]; then
-        _tag_exist=1
-    fi
+	_tag_match="$1"
+	do_for_all_tags is_tag_match
+	_tag_exist=0
+	if [[ $_tag_ret -eq 1 ]]; then
+		_tag_exist=1
+	fi
 }
 
 #
@@ -77,44 +77,44 @@ function is_tag_exist {
 # Return: $_tag_exist
 #
 function is_tag_exist_by_idx {
-    _tag_match_idx="$1"
-    do_for_all_tags is_tag_match_by_idx
-    _tag_exist=0
-    if [[ $_tag_ret -eq 1 ]]; then
-        _tag_exist=1
-    fi
+	_tag_match_idx="$1"
+	do_for_all_tags is_tag_match_by_idx
+	_tag_exist=0
+	if [[ $_tag_ret -eq 1 ]]; then
+		_tag_exist=1
+	fi
 }
 
 function print_a_tag {
-    printf "%-4s | %-40s | %-15s\n" "$1" "$2" "$3"
+	printf "%-4s | %-40s | %-15s\n" "$1" "$2" "$3"
 }
 
 function print_all_tags {
-    printf "\033[1;34m%-4s | \033[1;34m%-40s | %-15s\033[0m\n" "idx" "tag" "dir name"
-    do_for_all_tags print_a_tag
+	printf "\033[1;34m%-4s | \033[1;34m%-40s | %-15s\033[0m\n" "idx" "tag" "dir name"
+	do_for_all_tags print_a_tag
 }
 
 #
 # env to set: $_tag_cd_idx
 #
 function cd_to_dir {
-    if [[ -z $_tag_cd_idx ]]; then
-        echo "cd_to_dir called without var _tag_cd_idx set"
-        exit 1
-    fi
+	if [[ -z $_tag_cd_idx ]]; then
+		echo "cd_to_dir called without var _tag_cd_idx set"
+		exit 1
+	fi
 
-    if [[ $1 == "$_tag_cd_idx" ]]; then
-        cd "$3"
-        _tag_ret=1
-    fi
+	if [[ $1 == "$_tag_cd_idx" ]]; then
+		cd "$3"
+		_tag_ret=1
+	fi
 }
 
 function list_and_go_to_tag {
-    print_all_tags
-    export index_in
-    read -r -p "Enter the index of the tag: " index_in
-    _tag_cd_idx=$index_in
-    do_for_all_tags cd_to_dir "$index_in"
+	print_all_tags
+	export index_in
+	read -r -p "Enter the index of the tag: " index_in
+	_tag_cd_idx=$index_in
+	do_for_all_tags cd_to_dir "$index_in"
 }
 
 #
@@ -122,130 +122,129 @@ function list_and_go_to_tag {
 # $2: new tag
 #
 function rename_tag {
-    is_tag_exist "$1"
-    if [[ $_tag_exist -eq 0 ]]; then
-        echo "rename_tag: tag $1 not found"
-        return
-    fi
+	is_tag_exist "$1"
+	if [[ $_tag_exist -eq 0 ]]; then
+		echo "rename_tag: tag $1 not found"
+		return
+	fi
 
-    loop_rename=1
-    new_tag="$2"
-    while [[ $loop_rename -eq 1 ]]; do
-        is_tag_exist "$new_tag"
-        if [[ $_tag_exist -eq 1 ]]; then
-            # We don't want to care about deletion here
-            read -r -p "This new tag $2 already exists, please try a different tag: " new_tag
-            continue
-        fi
+	loop_rename=1
+	new_tag="$2"
+	while [[ $loop_rename -eq 1 ]]; do
+		is_tag_exist "$new_tag"
+		if [[ $_tag_exist -eq 1 ]]; then
+			# We don't want to care about deletion here
+			read -r -p "This new tag $2 already exists, please try a different tag: " new_tag
+			continue
+		fi
 
-        is_tag_exist "$1"
-        echo "$new_tag" | sudo tee "$_tag_dir"/bench_tag
-        loop_rename=0
-    done
+		is_tag_exist "$1"
+		echo "$new_tag" | sudo tee "$_tag_dir"/bench_tag
+		loop_rename=0
+	done
 }
 
 function delete_tag {
-    is_tag_exist "$1"
-    if [[ $_tag_exist -eq 0 ]]; then
-        echo "delete_tag: tag $1 could not be found"
-        return
-    fi
+	is_tag_exist "$1"
+	if [[ $_tag_exist -eq 0 ]]; then
+		echo "delete_tag: tag $1 could not be found"
+		return
+	fi
 
-    sudo mkdir -p result/archive
-    sudo mv "$_tag_dir" result/archive
+	sudo mkdir -p result/archive
+	sudo mv "$_tag_dir" result/archive
 }
 
 function ask_for_tag {
-    print_all_tags
-    echo "-"
-    read -r -p "Do you want to enter a tag for this bench? [Y/n] " response
-    if [ -z $response ]; then
-        response="Y"
-    fi
-    case "$response" in
-    [yY][eE][sS] | [yY])
-        read -r -p "Enter the tag: " input_tag
-        ;;
-    *)
-        input_tag=$(date +%Y-%m-%d_%H-%M-%S)
-        ;;
-    esac
+	print_all_tags
+	echo "-"
+	read -r -p "Do you want to enter a tag for this bench? [Y/n] " response
+	if [ -z $response ]; then
+		response="Y"
+	fi
+	case "$response" in
+	[yY][eE][sS] | [yY])
+		read -r -p "Enter the tag: " input_tag
+		;;
+	*)
+		input_tag=$(date +%Y-%m-%d_%H-%M-%S)
+		;;
+	esac
 
-    loop_inner=1
-    while [[ $loop_inner -eq 1 ]]; do
-        is_tag_exist "$input_tag"
-        if [[ $_tag_exist -eq 1 ]]; then
-            read -r -p "This tag already exist, move (M) the existing one, delete (D) or rename (R) this tag? " response
-            if [[ $response != [mMrRdD] ]]; then
-                echo "Invalied output!"
-                continue
-            fi
+	loop_inner=1
+	while [[ $loop_inner -eq 1 ]]; do
+		is_tag_exist "$input_tag"
+		if [[ $_tag_exist -eq 1 ]]; then
+			read -r -p "This tag already exist, move (M) the existing one, delete (D) or rename (R) this tag? " response
+			if [[ $response != [mMrRdD] ]]; then
+				echo "Invalied output!"
+				continue
+			fi
 
-            loop_inner=0
-            if [[ $response == [mM] ]]; then
-                read -r -p "Move the old tag: " new_old_tag_name
-                rename_tag "$input_tag" "$new_old_tag_name"
-            elif [[ $response == [dD] ]]; then
-                delete_tag "$input_tag"
-                loop_inner=0
-            else
-                read -r -p "Rename the tag: " input_tag
-                continue
-            fi
-        fi
+			loop_inner=0
+			if [[ $response == [mM] ]]; then
+				read -r -p "Move the old tag: " new_old_tag_name
+				rename_tag "$input_tag" "$new_old_tag_name"
+			elif [[ $response == [dD] ]]; then
+				delete_tag "$input_tag"
+				loop_inner=0
+			else
+				read -r -p "Rename the tag: " input_tag
+				continue
+			fi
+		fi
 
-        echo "$input_tag" >>"${result_dir}"/bench_tag
-        break
-    done
+		echo "$input_tag" >>"${result_dir}"/bench_tag
+		break
+	done
 }
 
 function ask_for_deletion {
-    echo "Bench got interrupted, dir: $result_dir"
-    read -r -p "Delete this dir? [y/N]" resp
-    case "$resp" in
-    [yY][eE][sS] | [yY])
-        rm -rf "$result_dir"
-        echo "Deleted"
-        ;;
-    *)
-        echo "Exiting"
-        ;;
-    esac
+	echo "Bench got interrupted, dir: $result_dir"
+	read -r -p "Delete this dir? [y/N]" resp
+	case "$resp" in
+	[yY][eE][sS] | [yY])
+		rm -rf "$result_dir"
+		echo "Deleted"
+		;;
+	*)
+		echo "Exiting"
+		;;
+	esac
 }
 
 function operate_tag {
-    loop_op=1
-    while [[ $loop_op -eq 1 ]]; do
-        print_all_tags
-        read -r -p "Which tag do you want to operate? Index: " index_op
-        is_tag_exist_by_idx $index_op
-        if [[ $_tag_exist -eq 1 ]]; then
-            echo "Seleted tag: $_tag_idx : $_tag_tag"
-        else
-            echo "Index $index_op not exist, try again"
-            continue
-        fi
+	loop_op=1
+	while [[ $loop_op -eq 1 ]]; do
+		print_all_tags
+		read -r -p "Which tag do you want to operate? Index: " index_op
+		is_tag_exist_by_idx $index_op
+		if [[ $_tag_exist -eq 1 ]]; then
+			echo "Seleted tag: $_tag_idx : $_tag_tag"
+		else
+			echo "Index $index_op not exist, try again"
+			continue
+		fi
 
-        while true; do
-            echo "What do you want to do with this tag? "
-            read -r -p "Rename (R) Delete (D) CD (C) " op_op
+		while true; do
+			echo "What do you want to do with this tag? "
+			read -r -p "Rename (R) Delete (D) CD (C) " op_op
 
-            if [[ $op_op != [rRdDcC] ]]; then
-                echo "Invalid input, try again"
-                continue
-            fi
+			if [[ $op_op != [rRdDcC] ]]; then
+				echo "Invalid input, try again"
+				continue
+			fi
 
-            if [[ $op_op == [rR] ]]; then
-                read -r -p "Enter the new tag: " new_tag
-                rename_tag "$_tag_tag" "$new_tag"
-            elif [[ $op_op == [cC] ]]; then
-                cd "$_tag_dir"
-                loop_op=0
-            else
-                delete_tag "$_tag_tag"
-            fi
-            break
-        done
-    done
+			if [[ $op_op == [rR] ]]; then
+				read -r -p "Enter the new tag: " new_tag
+				rename_tag "$_tag_tag" "$new_tag"
+			elif [[ $op_op == [cC] ]]; then
+				cd "$_tag_dir"
+				loop_op=0
+			else
+				delete_tag "$_tag_tag"
+			fi
+			break
+		done
+	done
 }
-

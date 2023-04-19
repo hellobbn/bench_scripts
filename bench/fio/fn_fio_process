@@ -3,7 +3,7 @@
 source $LOCAL_DIR/utils/fn_util
 
 function post_process {
-    for i in $(find "$1" -type f -name '*-perf.log'); do
-        gen_perfflame "$i"
-    done
+	for i in $(find "$1" -type f -name '*-perf.log'); do
+		gen_perfflame "$i"
+	done
 }
