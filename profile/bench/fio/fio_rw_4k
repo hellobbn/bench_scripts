@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## DO NOT MODIFY! Alrady frozen
+
 ## FIO Setting
 SETTING_FIO_PATTERN="read write randread randwrite"
 SETTING_FIO_BSIZE="4k"
