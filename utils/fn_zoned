@@ -42,7 +42,7 @@ function zoned_format_dm-zoned {
 
 	dev_name=$(sudo dmesg | grep -i zoned | tail -1 | sed -n 's/.*(\([^)]*\)).*:.*/\1/p')
 	if [[ -z ${dev_name} ]]; then
-		echo "ERR: Not found a zoned dev"
+		error "ERR: Not found a zoned dev"
 		exit 1
 	fi
 	dev_name="/dev/mapper/${dev_name}"

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+##
+# If the zoned device supports conventional block
+# for example:
+# If set to 1, f2fs will format using the following command:
+#    mkfs.f2fs -m disk
+# Else it will format using:
+#    mkfs.f2fs -f -m -c disk0 disk1
+##
+export CONFIG_ZONED_CONV=0
+
+## Zoned Disk name
+export CONFIG_ZONED_DEV=/dev/nvme0n1
+
+## Conv disk name if CONFIG_F2FS_ZONED_CONV is 0
+export CONFIG_CONV_DEV=/dev/nvme0n2
+
+## Mount point
+export CONFIG_MOUNTPOINT=/mnt/zns
+
+## dm-zoned dev name
+export CONFIG_DM_ZONED_DEV_NAME=dmz-deadbeef
+
+## Bench profile
+export CONFIG_BENCH_PROFILE="mysql mysql_perf"
+
+## Use a loop device for conv dev, this will reset CONFIG_CONV_DEV!
+export CONFIG_USE_LOOP_AS_CONV=0
+
+## Loop Dev Size (in GB, in integer)
+export CONFIG_LOOP_SIZE=8
+
+## Loop dev is a ramdisk?
+export CONFIG_LOOP_IN_RAM=1
+
+## Perf
+export PATH=/home/bbn/linux/tools/perf:$PATH
+
+## User
+export CONFIG_USER=bbn

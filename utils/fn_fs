@@ -4,29 +4,36 @@
 #  $1 for dev
 
 function normal_mount_generic {
+	info "Mounting $1 as $2"
 	sudo mount -t "$2" "$1" "${CONFIG_MOUNTPOINT}"
 }
 
 function normal_format_ext4 {
+	info "Formatting $1 as ext4"
 	sudo mkfs.ext4 -F "$1"
 }
 
 function normal_mount_ext4 {
+	info "Mounting $1 as ext4"
 	mount_generic "$1" "ext4"
 }
 
 function normal_format_xfs {
+	info "Formatting $1 as xfs"
 	sudo mkfs.xfs -f "$1"
 }
 
 function normal_mount_xfs {
+	info "Mounting $1 as xfs"
 	mount_generic "$1" "xfs"
 }
 
 function normal_format_f2fs {
+	info "Formatting $1 as f2fs"
 	sudo mkfs.f2fs -f "$1"
 }
 
 function normal_mount_f2fs {
+	info "Mounting $1 as f2fs"
 	mount_generic "$1" "f2fs"
 }

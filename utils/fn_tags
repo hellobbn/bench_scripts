@@ -29,7 +29,7 @@ function do_for_all_tags {
 #
 function is_tag_match {
 	if [[ -z $_tag_match ]]; then
-		echo "is_tag_match called without var _tag_match set"
+		error "is_tag_match called without var _tag_match set"
 		exit 1
 	fi
 
@@ -47,7 +47,7 @@ function is_tag_match {
 #
 function is_tag_match_by_idx {
 	if [[ -z $_tag_match_idx ]]; then
-		echo "is_tag_match_idx called without var _tag_match_idx set"
+		error "is_tag_match_idx called without var _tag_match_idx set"
 		exit 1
 	fi
 
@@ -99,7 +99,7 @@ function print_all_tags {
 #
 function cd_to_dir {
 	if [[ -z $_tag_cd_idx ]]; then
-		echo "cd_to_dir called without var _tag_cd_idx set"
+		error "cd_to_dir called without var _tag_cd_idx set"
 		exit 1
 	fi
 
@@ -124,7 +124,7 @@ function list_and_go_to_tag {
 function rename_tag {
 	is_tag_exist "$1"
 	if [[ $_tag_exist -eq 0 ]]; then
-		echo "rename_tag: tag $1 not found"
+		error "rename_tag: tag $1 not found"
 		return
 	fi
 
@@ -147,7 +147,7 @@ function rename_tag {
 function delete_tag {
 	is_tag_exist "$1"
 	if [[ $_tag_exist -eq 0 ]]; then
-		echo "delete_tag: tag $1 could not be found"
+		error "delete_tag: tag $1 could not be found"
 		return
 	fi
 
@@ -177,7 +177,7 @@ function ask_for_tag {
 		if [[ $_tag_exist -eq 1 ]]; then
 			read -r -p "This tag already exist, move (M) the existing one, delete (D) or rename (R) this tag? " response
 			if [[ $response != [mMrRdD] ]]; then
-				echo "Invalied output!"
+				error "Invalied output!"
 				continue
 			fi
 
@@ -200,15 +200,15 @@ function ask_for_tag {
 }
 
 function ask_for_deletion {
-	echo "Bench got interrupted, dir: $result_dir"
+	warn "Bench got interrupted, dir: $result_dir"
 	read -r -p "Delete this dir? [y/N]" resp
 	case "$resp" in
 	[yY][eE][sS] | [yY])
 		rm -rf "$result_dir"
-		echo "Deleted"
+		info "Deleted"
 		;;
 	*)
-		echo "Exiting"
+		info "Exiting"
 		;;
 	esac
 }
@@ -220,9 +220,9 @@ function operate_tag {
 		read -r -p "Which tag do you want to operate? Index: " index_op
 		is_tag_exist_by_idx $index_op
 		if [[ $_tag_exist -eq 1 ]]; then
-			echo "Seleted tag: $_tag_idx : $_tag_tag"
+			info "Seleted tag: $_tag_idx : $_tag_tag"
 		else
-			echo "Index $index_op not exist, try again"
+			warn "Index $index_op not exist, try again"
 			continue
 		fi
 
@@ -231,7 +231,7 @@ function operate_tag {
 			read -r -p "Rename (R) Delete (D) CD (C) " op_op
 
 			if [[ $op_op != [rRdDcC] ]]; then
-				echo "Invalid input, try again"
+				warn "Invalid input, try again"
 				continue
 			fi
 

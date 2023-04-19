@@ -3,12 +3,12 @@
 dir="$1"
 
 if [[ -z $dir ]]; then
-	echo "Usage: $0 <dir>"
+	error "Usage: $0 <dir>"
 	exit 1
 fi
 
 if [[ ! -d $dir ]]; then
-	echo "Directory $dir does not exist"
+	error "Directory $dir does not exist"
 	exit 1
 fi
 

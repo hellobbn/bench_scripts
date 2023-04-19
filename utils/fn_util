@@ -3,7 +3,7 @@
 function setup_loop {
 	sudo losetup -D
 	set +e
-	sudo umount ./tmp
+	sudo umount ./tmp > /dev/null 2>&1
 	set -e
 	if [[ ${CONFIG_USE_LOOP_AS_CONV} == "1" ]]; then
 		if [[ ${CONFIG_LOOP_IN_RAM} == "1" ]]; then
@@ -33,8 +33,23 @@ function inline_func {
 function gen_perfflame {
 	if [[ -z $FLAME_GRAPH_DIR ]]; then
 		FLAME_GRAPH_DIR=/home/bbn/FlameGraph
-		echo "FLAME_GRAPH_DIR is not set, using default: $FLAME_GRAPH_DIR"
+		warn "FLAME_GRAPH_DIR is not set, using default: $FLAME_GRAPH_DIR"
 	fi
 
 	perf script -i "$1" | $FLAME_GRAPH_DIR/stackcollapse-perf.pl | $FLAME_GRAPH_DIR/flamegraph.pl >$1.svg
+}
+
+# info: print in green
+function info {
+	echo -e "\e[32m$1\e[0m"
+}
+
+# warn: print in yellow
+function warn {
+	echo -e "\e[33m$1\e[0m"
+}
+
+# error: print in red
+function error {
+	echo -e "\e[31m$1\e[0m"
 }

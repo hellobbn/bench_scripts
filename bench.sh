@@ -28,17 +28,12 @@ export result_dir="result/result_${date_suffix}"
 
 # Read from config
 spec_config=setup_$(hostname)
-if [[ -f "config/${spec_config}" ]]; then
-	# shellcheck source=common/setup_bbnpm
-	source "config/${spec_config}"
+if [[ -f "config/${CONFIG_OVERRIDE}" ]]; then
+	config="config/${CONFIG_OVERRIDE}"
+elif [[ -f "config/${spec_config}" ]]; then
+	config="config/${spec_config}"
 else
-	# shellcheck source=common/setup
-	source "config/setup"
-fi
-
-# The arguments are the profile to run
-if [[ $# -gt 0 ]]; then
-	CONFIG_BENCH_PROFILE="$*"
+	config="config/setup"
 fi
 
 # Import util functions
@@ -46,6 +41,15 @@ source utils/fn_fs
 source utils/fn_util
 source utils/fn_zoned
 source utils/fn_tags
+
+# Echo config in green text
+info "Using config: $config"
+source "$config"
+
+# The arguments are the profile to run
+if [[ $# -gt 0 ]]; then
+	CONFIG_BENCH_PROFILE="$*"
+fi
 
 function on_sigint {
 	# Ask if we want to delete this directory
@@ -65,7 +69,7 @@ trap 'on_sigint' SIGINT
 #  - $1: Benchmark list
 ##
 function init_profile {
-	echo "off" | sudo tee /sys/devices/system/cpu/smt/control || /bin/true
+	echo "off" | sudo tee /sys/devices/system/cpu/smt/control || /bin/true > /dev/null 2>&1
 
 	# TODO
 }
@@ -132,4 +136,8 @@ if [[ -n $CONFIG_USER ]]; then
 	chown -R $CONFIG_USER:$CONFIG_USER "$LOCAL_DIR"/result
 fi
 ln -s $LOCAL_DIR/"$result_dir" $LOCAL_DIR/"result/latest"
+
+# save config
+cat "$config" >"$result_dir/config"
+
 ask_for_tag

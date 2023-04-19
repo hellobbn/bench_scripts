@@ -38,7 +38,7 @@ function bench_single_main_mysql {
 	sleep 2
 
 	# Initialize MySQL
-	sudo mysqld --initialize-insecure
+	sudo mysqld --initialize-insecure > /dev/null 2>&1
 
 	# Chown
 	sudo chown -R mysql:mysql ${CONFIG_MOUNTPOINT}/mysql
@@ -47,20 +47,20 @@ function bench_single_main_mysql {
 	systemctl restart mysql
 
 	# Import MySQL DB
-	echo "==> Importing MySQL DB"
+	info "==> Importing MySQL DB"
 	mysqladmin -u root create ${TPCC_DB_NAME}
 	mysql -u root ${TPCC_DB_NAME} <${LOCAL_DIR}/db/${TPCC_DB_NAME}.sql
 
 	# Sleep for some seconds
 	sleep 5
 
-	echo "==> Pre-bench hook"
+	info "==> Pre-bench hook"
 	mysql_hook
 
-	echo "==> Running MySQL"
+	info "==> Running MySQL"
 	$numactl_cmd ${TPCC_DIR}/tpcc_start -h 127.0.0.1 -P 3306 -d ${TPCC_DB_NAME} -u root -p "" -w ${TPCC_WH} -c 14 -r 120 -l 300 -i 10 | tee $1
 
-	echo "==> Post-bench hook"
+	info "==> Post-bench hook"
 	mysql_hook_end
 
 	# Stop MySQL
