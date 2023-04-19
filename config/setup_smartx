@@ -40,3 +40,6 @@ export CONFIG_USER=chenlf
 ## Perf
 export PATH=/home/chenlf/.bin:$PATH
 export FLAME_GRAPH_DIR=/home/chenlf/FlameGraph
+
+## DEBUG
+export DEBUG=1

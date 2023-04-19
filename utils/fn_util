@@ -15,7 +15,7 @@ function setup_loop {
         fi
         sudo dd if=/dev/zero of="${loop_filename}" bs=1M count="$((CONFIG_LOOP_SIZE * 1024))"
         sudo losetup -D
-        export CONFIG_CONV_DEV=$(sudo losetup -b 4096 --find --show "${loop_filename}")
+        export CONFIG_CONV_DEV=$(sudo losetup --find --show "${loop_filename}")
     fi
 }
 
@@ -28,4 +28,13 @@ function inline_func {
         echo "$line"
     fi
     done < "$1"
+}
+
+function gen_perfflame {
+    if [[ -z $FLAME_GRAPH_DIR ]]; then
+        FLAME_GRAPH_DIR=/home/bbn/FlameGraph
+        echo "FLAME_GRAPH_DIR is not set, using default: $FLAME_GRAPH_DIR"
+    fi
+
+    perf script -i "$1" | $FLAME_GRAPH_DIR/stackcollapse-perf.pl | $FLAME_GRAPH_DIR/flamegraph.pl >$1.svg
 }

@@ -11,10 +11,11 @@ stty -echoctl
 set -e
 
 # print debug information print
-# set -x
+if [[ ${DEBUG} -eq 1 ]]; then
+    set -x
+fi
 
 # Export common benchmark variables
-export MOUNT_DIR=/mnt/pmem
 export PATH=/usr/local/bin:$PATH
 export LOCAL_DIR
 export date_suffix

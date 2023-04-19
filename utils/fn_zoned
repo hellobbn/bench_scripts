@@ -6,6 +6,7 @@
 function check_umount {
     mounted=$(mount | grep "$1" || /bin/true)
     if [[ -n ${mounted} ]]; then
+        # read -r -p "Enter to umount $1"
         sudo umount "$1"
     fi
 }

@@ -5,10 +5,15 @@ function bench_single_main {
         for size in $SETTING_FIO_BSIZE; do
             for thread in $SETTING_FIO_THREAD; do
                 zoned_cleanup
+                sync
                 sudo blkzone reset "${CONFIG_ZONED_DEV}"
+                sync
                 zoned_format_"${bench_fs}"
+                sync
                 zoned_mount_"${bench_fs}"
+                sync
                 sleep 2
+                set +e
                 # sleep 2 && sudo bpftrace ${BPFTRACE_DIR}/time_trace.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-time.log &
                 # sleep 2 && sudo bpftrace ${BPFTRACE_DIR}/call_path.bt | tee "$1"-"$pattern"-"$size"-t"$thread"-bpftrace-path.log &
                 numactl -N 0 -m 0 perf record -g -F 99 -o $1-"$pattern"-"$size"-t"$thread"-perf.log -- fio --name=benchmark \
@@ -24,6 +29,7 @@ function bench_single_main {
                     --size="${SETTING_FIO_SIZE}" \
                     --blockalign=4096 \
                     --mem_align=4096
+                set -e
                 set +e
                 sudo pkill bpftrace
                 set -e

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-FLAME_GRAPH_DIR=/home/bbn/FlameGraph
+source $LOCAL_DIR/utils/fn_util
 
 function post_process {
     for i in $(find "$1" -type f -name '*-perf.log'); do
-        perf script -i $i | $FLAME_GRAPH_DIR/stackcollapse-perf.pl | $FLAME_GRAPH_DIR/flamegraph.pl >$i.svg
+        gen_perfflame "$i"
     done
 }
