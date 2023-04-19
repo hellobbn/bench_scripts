@@ -28,7 +28,8 @@ function bench_single_main {
                     --directory="${CONFIG_MOUNTPOINT}" \
                     --size="${SETTING_FIO_SIZE}" \
                     --blockalign=4096 \
-                    --mem_align=4096
+                    --mem_align=4096 \
+                    --direct=1
                 set -e
                 set +e
                 sudo pkill bpftrace
