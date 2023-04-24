@@ -1,16 +1,11 @@
 #!/bin/bash
 
-TPCC_DIR="/home/bbn/tpcc-mysql/"
-MYSQL_CONF="/etc/my.cnf"
-TPCC_WH=100
-TPCC_DB_NAME="tpcc${TPCC_WH}"
-
 function mysql_hook {
 	# Perf begin
 	pid=$(pidof mysqld)
-	sleep 130 && sudo perf record -F 10 -o $1-mysql.perf -p $pid -- sleep 250 &
-	sleep 130 && sudo perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep 250 &
-	sleep 130 && sudo perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid sleep 20 2>&1 | tee $1-perf-stats.txt &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && perf record -F 10 -o $1-mysql.perf -p $pid -- sleep 60 &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep 60 &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid sleep 20 2>&1 | tee $1-perf-stats.txt &
 }
 
 function mysql_hook_end {
@@ -23,5 +18,4 @@ function mysql_hook_end {
 function bench_single_main_mysql_perf {
 	source $LOCAL_DIR/bench/mysql/fn_mysql
 	bench_single_main_mysql $1
-
 }

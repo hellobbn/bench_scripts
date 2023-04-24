@@ -55,13 +55,14 @@ function bench_single_main_mysql {
 	sleep 5
 
 	info "==> Pre-bench hook"
-	mysql_hook
+	# if this function exist
+	mysql_hook $1 || true
 
 	info "==> Running MySQL"
-	$numactl_cmd ${TPCC_DIR}/tpcc_start -h 127.0.0.1 -P 3306 -d ${TPCC_DB_NAME} -u root -p "" -w ${TPCC_WH} -c 14 -r 120 -l 300 -i 10 | tee $1
+	$numactl_cmd ${TPCC_DIR}/tpcc_start -h 127.0.0.1 -P 3306 -d ${TPCC_DB_NAME} -u root -p "" -w ${TPCC_WH} -c ${TPCC_CLIENT} -r ${TPCC_WARMUP_TIME} -l ${TPCC_RUNTIME} -i 10 | tee $1
 
 	info "==> Post-bench hook"
-	mysql_hook_end
+	mysql_hook_end || true
 
 	# Stop MySQL
 	sudo service mysql stop

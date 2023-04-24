@@ -1,0 +1,27 @@
+#!/usr/bin/env bpftrace
+
+// The time of the execution of _Z20dispatch_sql_commandP3THDP12Parser_state
+uprobe:/usr/sbin/mysqld:_Z20dispatch_sql_commandP3THDP12Parser_state
+{
+  @dispatch_sql_command_start[tid] = nsecs;
+}
+
+uretprobe:/usr/sbin/mysqld:_Z20dispatch_sql_commandP3THDP12Parser_state
+{
+  @dispatch_sql_command[comm] = hist(nsecs - @dispatch_sql_command_start[tid]);
+  @dispatch_sql_command_total[comm] += (nsecs - @dispatch_sql_command_start[tid]);
+  delete(@dispatch_sql_command_start[tid]);
+}
+
+// The time of the execution of _Z16dispatch_commandP3THDPK8COM_DATA19enum_server_command
+uprobe:/usr/sbin/mysqld:_Z16dispatch_commandP3THDPK8COM_DATA19enum_server_command
+{
+  @dispatch_command_start[tid] = nsecs;
+}
+
+uretprobe:/usr/sbin/mysqld:_Z16dispatch_commandP3THDPK8COM_DATA19enum_server_command
+{
+  @dispatch_command[comm] = hist(nsecs - @dispatch_command_start[tid]);
+  @dispatch_command_total[comm] += (nsecs - @dispatch_command_start[tid]);
+  delete(@dispatch_command_start[tid]);
+}

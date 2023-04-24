@@ -1,13 +1,8 @@
 #!/bin/bash
 
-TPCC_DIR="/home/bbn/tpcc-mysql/"
-MYSQL_CONF="/etc/my.cnf"
-TPCC_WH=100
-TPCC_DB_NAME="tpcc${TPCC_WH}"
-
 function mysql_hook {
 	pid_mysql=$(pidof mysqld)
-	sudo bpftrace ${BENCH_DIR}/call_path.bt $pid_mysql | tee $1-bpftrace.txt &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && sudo bpftrace ${LOCAL_DIR}/utils/bpftrace/mysql_uprobe.bt $pid_mysql | tee $1-bpftrace.txt &
 }
 
 function mysql_hook_end {
@@ -17,5 +12,6 @@ function mysql_hook_end {
 }
 
 function bench_single_main_mysql_trace {
+	source $LOCAL_DIR/bench/mysql/fn_mysql
 	bench_single_main_mysql
 }
