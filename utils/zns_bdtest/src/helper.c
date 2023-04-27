@@ -1,7 +1,18 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void info(const char *restrict format, ...) {
+#ifndef NOLOG
+void verbose(const char *restrict format, ...) {
+    va_list args;
+    va_start(args, format);
+    // print in blue
+    printf("\033[0;34m");
+    vprintf(format, args);
+    printf("\033[0m");
+    va_end(args);
+}
+
+void znsinfo(const char *restrict format, ...) {
     va_list args;
     va_start(args, format);
     // print in green
@@ -9,8 +20,12 @@ void info(const char *restrict format, ...) {
     vprintf(format, args);
     va_end(args);
 }
+#else
+#define verbose(format, ...)
+#define znsinfo(format, ...)
+#endif
 
-void warn(const char *restrict format, ...) {
+void znswarn(const char *restrict format, ...) {
     va_list args;
     va_start(args, format);
     // print in yellow
@@ -19,7 +34,7 @@ void warn(const char *restrict format, ...) {
     va_end(args);
 }
 
-void error(const char *restrict format, ...) {
+void znserror(const char *restrict format, ...) {
     va_list args;
     va_start(args, format);
     // print in red
@@ -27,4 +42,3 @@ void error(const char *restrict format, ...) {
     vprintf(format, args);
     va_end(args);
 }
-
