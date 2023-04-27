@@ -1,3 +1,5 @@
+#include <argp.h>
+#include <bits/types/error_t.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <helper.h>
@@ -141,7 +143,6 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
   total_throughput = total_throughput + throughput / 1024 / 1024;
   test_times += 1;
 
-
   znsinfo("<== Wrote %ld bytes to zone %d\n", bytes_written, idx);
   dbg_dump_zone(idx, fd);
 
@@ -159,15 +160,79 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
   return 0;
 }
 
-int main(int argc, char *argv[]) {
-  if (argc < 4) {
-    printf("Usage: %s <device> <buffer_size> <num_writes>\n", argv[0]);
-    printf("  buffer_size: size of buffer (in bytes) to write to each zone\n");
-    return -1;
+const char *argp_program_version = "zns_bdtest 0.1";
+const char *argp_program_bug_address = "<clfbbn@gmail.com>";
+static char doc[] = "zns_bdtest -- test bw of zoned block device";
+static char args_doc[] = "DEVICE ...";
+
+static struct argp_option options[] = {
+    {"buffer_size", 'b', "SIZE", 0, "Size of buffer to write to each zone"},
+    {"num_writes", 'n', "NUM", 0, "Number of writes to each zone"},
+    {"mode", 'm', "MODE", 0, "Mode of operation (seq, rand)"},
+    {0}};
+
+struct arguments {
+  char *args[1];
+  unsigned int buf_size;
+  unsigned int num_writes;
+  enum { MODE_SEQ, MODE_RAND, MODE_ALL } mode;
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  struct arguments *arguments = state->input;
+  switch (key) {
+  case 'b':
+    arguments->buf_size = atoi(arg);
+    break;
+  case 'n':
+    arguments->num_writes = atoi(arg);
+    break;
+  case 'm':
+    if (strcmp(arg, "seq") == 0) {
+      arguments->mode = MODE_SEQ;
+    } else if (strcmp(arg, "rand") == 0) {
+      arguments->mode = MODE_RAND;
+    } else if (strcmp(arg, "all") == 0) {
+      arguments->mode = MODE_ALL;
+    } else {
+      argp_usage(state);
+    }
+    break;
+  case ARGP_KEY_ARG:
+    if (state->arg_num >= 1) {
+      argp_usage(state);
+    }
+    arguments->args[state->arg_num] = arg;
+    break;
+  case ARGP_KEY_END:
+    if (state->arg_num < 1) {
+      argp_usage(state);
+    }
+    break;
+  default:
+    return ARGP_ERR_UNKNOWN;
   }
-  char *dev_name = argv[1];
-  unsigned int buf_size = atoi(argv[2]);
-  unsigned int num_writes = atoi(argv[3]);
+  return 0;
+}
+
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
+int main(int argc, char *argv[]) {
+  struct arguments arguments;
+  arguments.args[0] = "";
+  arguments.buf_size = 4096;
+  arguments.num_writes = 1;
+  arguments.mode = MODE_ALL;
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+  char *dev_name = arguments.args[0];
+  unsigned int buf_size = arguments.buf_size;
+  unsigned int num_writes = arguments.num_writes;
+  int mode = arguments.mode;
+
+  printf("Writing to %s, buffer size: %d, num writes: %d, mode: %d\n", dev_name,
+         buf_size, num_writes, mode);
+
   int is_zoned = zbd_device_is_zoned(dev_name);
   if (is_zoned == 0) {
     znserror("device %s is not zoned\n", dev_name);
@@ -193,7 +258,7 @@ int main(int argc, char *argv[]) {
     buf[i] = 'a';
   }
 
-  // Random writes, write randomly to the max allowed zoned
+  // Initialize the zone index
   int *zone_allowed = malloc(sizeof(int) * zinfo->max_nr_active_zones);
   srand(time(NULL));
   for (int i = 0; i < zinfo->max_nr_active_zones; i++) {
@@ -204,48 +269,56 @@ int main(int argc, char *argv[]) {
     zone_idx[i] = zone_allowed[rand() % zinfo->max_nr_active_zones];
   }
 
-  for (int i = 0; i < num_writes; i++) {
-    zbd_list_zones(fd, 0, 0, ZBD_RO_ALL, &zones, &nr_zones);
-    int idx = zone_idx[i];
-    znsinfo("Writing to idx %d\n", idx);
-    int ret = write_to_zone(fd, idx, zones + idx, buf, buf_size);
-    if (ret == -1) {
-      znserror("cannot write to zone %d\n", idx);
-      dbg_dump_zones(fd);
-      goto out;
+  if (mode != MODE_SEQ) {
+    // Random writes, write randomly to the max allowed zoned
+    for (int i = 0; i < num_writes; i++) {
+      zbd_list_zones(fd, 0, 0, ZBD_RO_ALL, &zones, &nr_zones);
+      int idx = zone_idx[i];
+      znsinfo("Writing to idx %d\n", idx);
+      int ret = write_to_zone(fd, idx, zones + idx, buf, buf_size);
+      if (ret == -1) {
+        znserror("cannot write to zone %d\n", idx);
+        dbg_dump_zones(fd);
+        goto out;
+      }
+    }
+
+    printf("Average throughput (Random): %f MB/s\n",
+           total_throughput / test_times);
+    // Reset all zones
+    for (int i = 0; i < zinfo->max_nr_active_zones; i++) {
+      if (zbd_zones_operation(fd, ZBD_OP_RESET,
+                              zbd_zone_start(zones + zone_allowed[i]),
+                              zbd_zone_len(zones + zone_allowed[i])) == -1) {
+        znserror("cannot reset zone %d\n", i);
+        dbg_dump_zones(fd);
+        goto out;
+      }
     }
   }
 
-  printf("Average throughput (Random): %f MB/s\n",
-          total_throughput / test_times);
-
-  // Reset all zones
-  for (int i = 0; i < zinfo->max_nr_active_zones; i++) {
-    if (zbd_zones_operation(fd, ZBD_OP_RESET,
-                            zbd_zone_start(zones + zone_allowed[i]),
-                            zbd_zone_len(zones + zone_allowed[i])) == -1) {
-      znserror("cannot reset zone %d\n", i);
-      dbg_dump_zones(fd);
-      goto out;
+  if (mode != MODE_RAND) {
+    // Now we choose a zone, write num_writes times to it
+    total_throughput = 0;
+    test_times = 0;
+    int idx = zone_allowed[rand() % zinfo->max_nr_active_zones];
+    for (int i = 0; i < num_writes; i++) {
+      zbd_list_zones(fd, 0, 0, ZBD_RO_ALL, &zones, &nr_zones);
+      znsinfo("Writing to idx %d\n", idx);
+      int ret = write_to_zone(fd, idx, zones + idx, buf, buf_size);
+      if (ret == -1) {
+        znserror("cannot write to zone %d\n", idx);
+        dbg_dump_zones(fd);
+        goto out;
+      }
     }
-  }
+    printf("Average throughput (Sequential): %f MB/s\n",
+           total_throughput / test_times);
 
-  // Now we choose a zone, write num_writes times to it
-  total_throughput = 0;
-  test_times = 0;
-  int idx = zone_allowed[rand() % zinfo->max_nr_active_zones];
-  for (int i = 0; i < num_writes; i++) {
-    zbd_list_zones(fd, 0, 0, ZBD_RO_ALL, &zones, &nr_zones);
-    znsinfo("Writing to idx %d\n", idx);
-    int ret = write_to_zone(fd, idx, zones + idx, buf, buf_size);
-    if (ret == -1) {
-      znserror("cannot write to zone %d\n", idx);
-      dbg_dump_zones(fd);
-      goto out;
-    }
+    // reset the zone
+    zbd_zones_operation(fd, ZBD_OP_RESET, zbd_zone_start(zones + idx),
+                        zbd_zone_len(zones + idx));
   }
-  printf("Average throughput (Sequential): %f MB/s\n",
-          total_throughput / test_times);
 
 out:
   free(buf);
