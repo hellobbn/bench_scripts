@@ -122,6 +122,14 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
   struct timespec start, end;
   clock_gettime(CLOCK_MONOTONIC, &start);
   ssize_t bytes_written = write(fd, buf, buf_size);
+  if (bytes_written == -1) {
+    znserror("cannot write to zone %d, error: %s\n", idx, strerror(errno));
+    return -1;
+  }
+  if (fsync(fd) == -1) {
+    znserror("fsync error, error: %s\n", strerror(errno));
+    return -1;
+  };
   clock_gettime(CLOCK_MONOTONIC, &end);
   double time_taken = (end.tv_sec - start.tv_sec) * 1e9;
   time_taken = (time_taken + (end.tv_nsec - start.tv_nsec)) * 1e-9;
@@ -133,10 +141,7 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
   total_throughput = total_throughput + throughput / 1024 / 1024;
   test_times += 1;
 
-  if (bytes_written == -1) {
-    znserror("cannot write to zone %d, error: %s\n", idx, strerror(errno));
-    return -1;
-  }
+
   znsinfo("<== Wrote %ld bytes to zone %d\n", bytes_written, idx);
   dbg_dump_zone(idx, fd);
 
@@ -171,7 +176,7 @@ int main(int argc, char *argv[]) {
 
   znsinfo("Opening %s\n", dev_name);
   struct zbd_info *zinfo = malloc(sizeof(struct zbd_info));
-  int fd = zbd_open(dev_name, O_RDWR | O_DIRECT, zinfo);
+  int fd = zbd_open(dev_name, O_RDWR, zinfo);
   dbg_dump_zinfo(zinfo);
   if (fd < 0) {
     znserror("zbd_open failed: %s\n", strerror(-fd));
