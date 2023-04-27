@@ -93,6 +93,7 @@ for profile in $CONFIG_BENCH_PROFILE; do
 	init_profile "$setting_bench"
 
 	for bench in $setting_bench; do
+		info "Running $bench"
 		# shellcheck source=bench/fio/fn_fio
 		source "bench/${bench}/fn_${bench}"
 		mkdir -p "$dir_name/$bench"
@@ -110,10 +111,13 @@ for profile in $CONFIG_BENCH_PROFILE; do
 				for bench_zfs in $bench_zoned_fs; do
 					export BENCH_DIR=${LOCAL_DIR}/bench/${bench}
 
+					info "Running $bench on $bench_fs $bench_zfs"
 					zoned_format_"${bench_fs}" $bench_zfs
 					zoned_mount_"${bench_fs}" $bench_zfs
 
+					info "Starting..."
 					bench_single_main_${bench} "$dir_name/$bench/$bench-${bench_fs}_${bench_zfs}"
+					info "Done $bench ($bench_fs - $bench_zfs), clean up"
 
 					zoned_cleanup
 				done # for bench_zfs in $bench_zoned_fs
@@ -138,6 +142,6 @@ fi
 ln -s $LOCAL_DIR/"$result_dir" $LOCAL_DIR/"result/latest"
 
 # save config
-cat "$config" >"$result_dir/config"
+inline_func "$config" >"$result_dir/config"
 
 ask_for_tag

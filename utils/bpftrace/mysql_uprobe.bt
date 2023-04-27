@@ -10,7 +10,6 @@ uretprobe:/usr/sbin/mysqld:_Z20dispatch_sql_commandP3THDP12Parser_state
 {
   @dispatch_sql_command[comm] = hist(nsecs - @dispatch_sql_command_start[tid]);
   @dispatch_sql_command_total[comm] += (nsecs - @dispatch_sql_command_start[tid]);
-  delete(@dispatch_sql_command_start[tid]);
 }
 
 // The time of the execution of _Z16dispatch_commandP3THDPK8COM_DATA19enum_server_command
@@ -23,5 +22,17 @@ uretprobe:/usr/sbin/mysqld:_Z16dispatch_commandP3THDPK8COM_DATA19enum_server_com
 {
   @dispatch_command[comm] = hist(nsecs - @dispatch_command_start[tid]);
   @dispatch_command_total[comm] += (nsecs - @dispatch_command_start[tid]);
-  delete(@dispatch_command_start[tid]);
+}
+
+// The time execution of the real hardware, found by function nvme_queue_rq
+kprobe:vfs_* / @dispatch_command_start[tid] != 0 /
+{
+  @vfs_start[tid] = nsecs;
+}
+
+kretprobe:vfs_* / @vfs_start[tid] != 0 /
+{
+  @vfs[comm] = hist(nsecs - @vfs_start[tid]);
+  @vfs_total[comm] += (nsecs - @vfs_start[tid]);
+  delete(@vfs_start[tid]);
 }

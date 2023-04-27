@@ -1,14 +1,17 @@
 #!/bin/bash
 
 function mysql_hook {
-	start_bpftrace
+	# Perf begin
+	start_perf $1
+	start_bpftrace $1
 }
 
 function mysql_hook_end {
 	stop_bpftrace
+	stop_perf
 }
 
-function bench_single_main_mysql_trace {
+function bench_single_main_mysql_perftrace {
 	source $LOCAL_DIR/bench/mysql/fn_mysql
 	bench_single_main_mysql $1
 }

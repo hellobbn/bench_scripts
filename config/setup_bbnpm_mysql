@@ -23,7 +23,7 @@ export CONFIG_MOUNTPOINT=/mnt/zns
 export CONFIG_DM_ZONED_DEV_NAME=dmz-deadbeef
 
 ## Bench profile
-export CONFIG_BENCH_PROFILE="mysql mysql_perf"
+export CONFIG_BENCH_PROFILE="mysql_perf"
 
 ## Use a loop device for conv dev, this will reset CONFIG_CONV_DEV!
 export CONFIG_USE_LOOP_AS_CONV=0

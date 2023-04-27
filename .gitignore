@@ -1,2 +1,5 @@
 result/
 db/*
+build/
+debug/
+.cache/

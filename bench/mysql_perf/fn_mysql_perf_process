@@ -1,0 +1,7 @@
+#!/bin/bash
+
+function post_process {
+	for i in $(find "$1" -type f -name '*.perf'); do
+		gen_perfflame "$i"
+	done
+}

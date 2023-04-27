@@ -2,17 +2,11 @@
 
 function mysql_hook {
 	# Perf begin
-	pid=$(pidof mysqld)
-	sleep ${TPCC_HOOK_SLEEP_TIME} && perf record -F 10 -o $1-mysql.perf -p $pid -- sleep 60 &
-	sleep ${TPCC_HOOK_SLEEP_TIME} && perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep 60 &
-	sleep ${TPCC_HOOK_SLEEP_TIME} && perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid sleep 20 2>&1 | tee $1-perf-stats.txt &
+	start_perf
 }
 
 function mysql_hook_end {
-	# Perf end
-	set +e
-	sudo killall perf
-	set -e
+	stop_perf
 }
 
 function bench_single_main_mysql_perf {

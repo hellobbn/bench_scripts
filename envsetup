@@ -1,3 +1,4 @@
 #!/bin/bash
 
+source utils/fn_util
 source utils/fn_tags

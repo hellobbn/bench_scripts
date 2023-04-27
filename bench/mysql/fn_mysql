@@ -1,5 +1,25 @@
 #!/bin/bash
 
+function start_perf {
+	pid=$(pidof mysqld)
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 1" && perf record -F 10 -o $1-mysql.perf -p $pid -- sleep ${TPCC_RUNTIME} &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 2" && perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep ${TPCC_RUNTIME} &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 3" && perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid -- sleep ${TPCC_RUNTIME} 2>&1 | tee $1-perf-stats.txt &
+}
+
+function start_bpftrace {
+	pid=$(pidof mysqld)
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting bpftrace 1" && sudo bpftrace ${LOCAL_DIR}/utils/bpftrace/mysql_uprobe.bt | tee $1-bpftrace.txt &
+}
+
+function stop_perf {
+	sudo killall perf || true
+}
+
+function stop_bpftrace {
+	sudo killall bpftrace || true
+}
+
 function bench_single_main_mysql {
 	cat >${MYSQL_CONF} <<-END
 		#
@@ -19,7 +39,7 @@ function bench_single_main_mysql {
 		default_storage_engine=InnoDB
 		innodb_io_capacity=1000000
 		innodb_page_cleaners=4
-		innodb_buffer_pool_size=60G
+		innodb_buffer_pool_size=${MYSQL_BUFFERPOOL}
 		# innodb_page_size=65536
 		# innodb_flush_method=O_DIRECT
 		# innodb_flush_sync=1
@@ -47,7 +67,7 @@ function bench_single_main_mysql {
 	systemctl restart mysql
 
 	# Import MySQL DB
-	info "==> Importing MySQL DB"
+	info "==> Importing MySQL DB: ${TPCC_DB_NAME}.sql"
 	mysqladmin -u root create ${TPCC_DB_NAME}
 	mysql -u root ${TPCC_DB_NAME} <${LOCAL_DIR}/db/${TPCC_DB_NAME}.sql
 

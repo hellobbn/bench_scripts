@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export setting_bench="mysql_perftrace"
+export setting_fs="f2fs"
+export setting_dmzoned_fs="ext4"
+
+# MySQL profile
+source ${LOCAL_DIR}/profile/bench/mysql/mysql_norm
