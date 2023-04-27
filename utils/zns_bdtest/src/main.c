@@ -97,6 +97,7 @@ static inline void dbg_dump_zones(unsigned int fd) {
 
 double total_throughput = 0;
 int test_times = 0;
+int fsync_time = 0;
 
 static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
                          ssize_t buf_size) {
@@ -128,10 +129,14 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
     znserror("cannot write to zone %d, error: %s\n", idx, strerror(errno));
     return -1;
   }
-  if (fsync(fd) == -1) {
-    znserror("fsync error, error: %s\n", strerror(errno));
-    return -1;
-  };
+
+  test_times += 1;
+  if (test_times % fsync_time == 0) {
+    if (fsync(fd) == -1) {
+      znserror("fsync error, error: %s\n", strerror(errno));
+      return -1;
+    };
+  }
   clock_gettime(CLOCK_MONOTONIC, &end);
   double time_taken = (end.tv_sec - start.tv_sec) * 1e9;
   time_taken = (time_taken + (end.tv_nsec - start.tv_nsec)) * 1e-9;
@@ -141,7 +146,6 @@ static int write_to_zone(int fd, int idx, struct zbd_zone *zone, char *buf,
   double throughput = buf_size / time_taken;
   verbose("==> Throughput: %f MB/s\n", throughput / 1024 / 1024);
   total_throughput = total_throughput + throughput / 1024 / 1024;
-  test_times += 1;
 
   znsinfo("<== Wrote %ld bytes to zone %d\n", bytes_written, idx);
   dbg_dump_zone(idx, fd);
@@ -169,12 +173,14 @@ static struct argp_option options[] = {
     {"buffer_size", 'b', "SIZE", 0, "Size of buffer to write to each zone"},
     {"num_writes", 'n', "NUM", 0, "Number of writes to each zone"},
     {"mode", 'm', "MODE", 0, "Mode of operation (seq, rand, all)"},
+    {"fsync", 'f', "fSYNC_TIME", 0, "Number of ios before a fsync happen"},
     {0}};
 
 struct arguments {
   char *args[1];
   unsigned int buf_size;
   unsigned int num_writes;
+  unsigned int fsync_time;
   enum { MODE_SEQ, MODE_RAND, MODE_ALL } mode;
 };
 
@@ -197,6 +203,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     } else {
       argp_usage(state);
     }
+    break;
+  case 'f':
+    arguments->fsync_time = atoi(arg);
     break;
   case ARGP_KEY_ARG:
     if (state->arg_num >= 1) {
@@ -223,15 +232,17 @@ int main(int argc, char *argv[]) {
   arguments.buf_size = 4096;
   arguments.num_writes = 1;
   arguments.mode = MODE_ALL;
+  arguments.fsync_time = 1;
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
   char *dev_name = arguments.args[0];
   unsigned int buf_size = arguments.buf_size;
   unsigned int num_writes = arguments.num_writes;
   int mode = arguments.mode;
+  fsync_time = arguments.fsync_time;
 
-  printf("Writing to %s, buffer size: %d, num writes: %d, mode: %d\n", dev_name,
-         buf_size, num_writes, mode);
+  printf("Writing to %s, buffer size: %d, num writes: %d, mode: %d, fsync_times = %d\n", dev_name,
+         buf_size, num_writes, mode, fsync_time);
 
   int is_zoned = zbd_device_is_zoned(dev_name);
   if (is_zoned == 0) {
