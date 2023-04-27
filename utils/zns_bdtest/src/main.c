@@ -168,7 +168,7 @@ static char args_doc[] = "DEVICE ...";
 static struct argp_option options[] = {
     {"buffer_size", 'b', "SIZE", 0, "Size of buffer to write to each zone"},
     {"num_writes", 'n', "NUM", 0, "Number of writes to each zone"},
-    {"mode", 'm', "MODE", 0, "Mode of operation (seq, rand)"},
+    {"mode", 'm', "MODE", 0, "Mode of operation (seq, rand, all)"},
     {0}};
 
 struct arguments {
