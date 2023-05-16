@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source $LOCAL_DIR/config/setup_bbnpm
+
+## Bench profile
+export CONFIG_BENCH_PROFILE="mysql_perf"
