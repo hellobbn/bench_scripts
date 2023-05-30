@@ -77,6 +77,6 @@ function zoned_mount_f2fs {
 	if [[ ${CONFIG_ZONED_CONV} == "1" ]]; then
 		sudo mount -t f2fs "${CONFIG_ZONED_DEV}" "${CONFIG_MOUNTPOINT}"
 	else
-		sudo mount -t f2fs "${CONFIG_CONV_DEV}" "${CONFIG_MOUNTPOINT}"
+		sudo mount -t f2fs -o mode=lfs "${CONFIG_CONV_DEV}" "${CONFIG_MOUNTPOINT}"
 	fi
 }

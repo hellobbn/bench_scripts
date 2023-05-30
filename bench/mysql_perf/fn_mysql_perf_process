@@ -2,6 +2,23 @@
 
 function post_process {
 	for i in $(find "$1" -type f -name '*.perf'); do
-		gen_perfflame "$i"
+		gen_perfflame "$i" "$1"
 	done
+
+	pushd $1
+	printf "time\tfull\tempty\topen\n" > blkzone.txt
+	printf "time\tgc_call\tgc_segs\n" > f2fs.txt
+	i=0
+	while [[ $i -lt $TPCC_RUNTIME ]]; do
+		full_count=$(cat blkzone/blkzone.$i | rg fu | wc -l)
+		empty_count=$(cat blkzone/blkzone.$i | rg em | wc -l)
+		open_count=$(cat blkzone/blkzone.$i | rg oi | wc -l)
+		printf "$i\t$full_count\t$empty_count\t$open_count\n" >> blkzone.txt
+
+		gc_call=$(cat f2fs/f2fs.$i | rg "GC calls" | tr -s ' ' | cut -d ' ' -f 3)
+		gc_segs=$(cat f2fs/f2fs.$i | rg "Reclaimed segs" | tr -s ' ' | cut -d ' ' -f 7 | sed -n 's/.*(\(.*\)).*/\1/p')
+		printf "$i\t$gc_call\t$gc_segs\n" >> f2fs.txt
+		i=$((i + 10))
+	done
+	popd
 }

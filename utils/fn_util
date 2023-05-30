@@ -11,9 +11,14 @@ function setup_loop {
 			sudo mount -t tmpfs none tmp
 			loop_filename="tmp/loop.img"
 		else
-			loop_filename="./loop.img"
+		size=$((CONFIG_LOOP_SIZE * 1024 * 1024 * 1024))
+		# if the file exist and the size matches, skip
+		if [[ -f "${loop_filename}" ]]; then
+			filesize=$(stat -c%s "${loop_filename}")
+			if [[ $filesize -ne $size ]]; then
+				sudo dd if=/dev/zero of="${loop_filename}" bs=1M count="$((CONFIG_LOOP_SIZE * 1024))"
+			fi
 		fi
-		sudo dd if=/dev/zero of="${loop_filename}" bs=1M count="$((CONFIG_LOOP_SIZE * 1024))"
 		sudo losetup -D
 		export CONFIG_CONV_DEV=$(sudo losetup --find --show "${loop_filename}")
 	fi
@@ -36,7 +41,16 @@ function gen_perfflame {
 		warn "FLAME_GRAPH_DIR is not set, using default: $FLAME_GRAPH_DIR"
 	fi
 
-	perf script -i "$1" | $FLAME_GRAPH_DIR/stackcollapse-perf.pl | $FLAME_GRAPH_DIR/flamegraph.pl >$1.svg
+	info "Generating perf gragh for $1"
+	basename_file=$(basename "$1")
+	out_filename=${basename_file}.svg
+	perf script -i "$1" | $FLAME_GRAPH_DIR/stackcollapse-perf.pl | $FLAME_GRAPH_DIR/flamegraph.pl >"$2"/$out_filename || true
+}
+
+export ROOT_DIR_BENCH=`pwd`
+
+function croot {
+	cd $ROOT_DIR_BENCH
 }
 
 # info: print in green

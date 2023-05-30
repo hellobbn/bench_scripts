@@ -35,5 +35,5 @@ function normal_format_f2fs {
 
 function normal_mount_f2fs {
 	info "Mounting $1 as f2fs"
-	mount_generic "$1" "f2fs"
+	sudo mount -t f2fs -o mode=lfs "$1" "${CONFIG_MOUNTPOINT}"
 }

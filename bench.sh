@@ -79,10 +79,15 @@ function run_prepare {
 	zoned_mount_"$1"
 }
 
+info "==> Setting up loop device"
 setup_loop
+
+info "==> Setting scheduler"
+echo mq-deadline | sudo tee /sys/block/$(basename ${CONFIG_ZONED_DEV})/queue/scheduler
 
 for profile in $CONFIG_BENCH_PROFILE; do
 	# Every profile has its own directory
+	info "==> Running profile $profile"
 	dir_name="${result_dir}/$profile"
 	mkdir -p "${dir_name}"
 

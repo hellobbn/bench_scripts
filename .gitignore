@@ -3,3 +3,7 @@ db/*
 build/
 debug/
 .cache/
+*.img
+compile_commands.json
+.clangd/
+dm-zoned-tools/

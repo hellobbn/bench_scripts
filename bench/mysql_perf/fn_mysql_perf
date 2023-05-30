@@ -1,12 +1,52 @@
 #!/bin/bash
 
+function loop_get_zoned_stat {
+	# Run blkzone report every 10 seconds until TPCC_RUNTIME
+	zoned_stat_dir=$(dirname "$1")/blkzone
+	i=0
+	while [ $i -lt $TPCC_RUNTIME ]; do
+		sudo blkzone report "$CONFIG_ZONED_DEV" > "$zoned_stat_dir"/blkzone.$i
+		sleep 10
+		i=$((i + 10))
+	done
+}
+
+function loop_get_f2fs_stat {
+	# Get /sys/kernel/debug/f2fs/status every 10 seconds until TPCC_RUNTIME
+	f2fs_stat_dir=$(dirname "$1")/f2fs
+	i=0
+	while [ $i -lt $TPCC_RUNTIME ]; do
+		cat /sys/kernel/debug/f2fs/status > "$f2fs_stat_dir"/f2fs.$i
+		sleep 10
+		i=$((i + 10))
+	done
+}
+
 function mysql_hook {
 	# Perf begin
-	start_perf
+	start_perf $1
+
+	# blkzone info
+	sudo blkzone report "$CONFIG_ZONED_DEV" > $(dirname "$1")/blkzone/blkzone.start
+
+	# Get /sys/kernel/debug/f2fs/status
+	cat /sys/kernel/debug/f2fs/status > $(dirname "$1")/f2fs/f2fs.start
+
+	# Run blkzone report every 10 seconds until TPCC_RUNTIME
+	loop_get_zoned_stat $1 &
+
+	# Get /sys/kernel/debug/f2fs/status every 10 seconds until TPCC_RUNTIME
+	loop_get_f2fs_stat $1 &
 }
 
 function mysql_hook_end {
 	stop_perf
+
+	# blkzone info
+	sudo blkzone report "$CONFIG_ZONED_DEV" > $(dirname "$1")/blkzone/blkzone.end
+
+	# Get /sys/kernel/debug/f2fs/status
+	cat /sys/kernel/debug/f2fs/status > $(dirname "$1")/f2fs/f2fs.end
 }
 
 function bench_single_main_mysql_perf {

@@ -2,6 +2,6 @@
 
 function post_process {
 	for i in $(find "$1" -type f -name '*.perf'); do
-		gen_perfflame "$i" || true
+		gen_perfflame "$i" "$1" || true
 	done
 }

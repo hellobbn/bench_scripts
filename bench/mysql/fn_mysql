@@ -2,14 +2,16 @@
 
 function start_perf {
 	pid=$(pidof mysqld)
-	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 1" && perf record -F 10 -o $1-mysql.perf -p $pid -- sleep ${TPCC_RUNTIME} &
-	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 2" && perf record -g -F 99 -o $1-mysql.g.perf -p $pid -- sleep ${TPCC_RUNTIME} &
-	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 3" && perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid -- sleep ${TPCC_RUNTIME} 2>&1 | tee $1-perf-stats.txt &
+	perf_out_dir=$(dirname "$1")/perf
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 1" && perf record -F 10 -o "$perf_out_dir"/mysql.perf -p $pid -- sleep ${TPCC_RUNTIME} &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 2" && perf record -g -F 99 -o "$perf_out_dir"/mysql.g.perf -p $pid -- sleep ${TPCC_RUNTIME} &
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting perf 3" && perf stat -B -e cache-references,cache-misses,cycles,instructions,branches,faults,migrations -p $pid -- sleep ${TPCC_RUNTIME} 2>&1 | tee "$perf_out_dir"/mysql.perf-stats.txt &
 }
 
 function start_bpftrace {
 	pid=$(pidof mysqld)
-	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting bpftrace 1" && sudo bpftrace ${LOCAL_DIR}/utils/bpftrace/mysql_uprobe.bt | tee $1-bpftrace.txt &
+	bpftrace_out_dir=$(dirname "$1")/bpftrace
+	sleep ${TPCC_HOOK_SLEEP_TIME} && info "Starting bpftrace 1" && sudo bpftrace ${LOCAL_DIR}/utils/bpftrace/mysql_uprobe.bt | tee "$bpftrace_out_dir"/mysql.bpftrace.txt &
 }
 
 function stop_perf {
@@ -54,6 +56,10 @@ function bench_single_main_mysql {
 		# malloc-lib=/usr/lib64/libjemalloc.so
 	END
 
+	# Also echo to /etc/mysql/my.cnf and /etc/mysql/mysql.cnf if they exist
+	[ -f /etc/mysql/my.cnf ] && cp -f ${MYSQL_CONF} /etc/mysql/my.cnf
+	[ -f /etc/mysql/mysql.cnf ] && cp -f ${MYSQL_CONF} /etc/mysql/mysql.cnf
+
 	sync
 	sleep 2
 
@@ -69,7 +75,11 @@ function bench_single_main_mysql {
 	# Import MySQL DB
 	info "==> Importing MySQL DB: ${TPCC_DB_NAME}.sql"
 	mysqladmin -u root create ${TPCC_DB_NAME}
-	mysql -u root ${TPCC_DB_NAME} <${LOCAL_DIR}/db/${TPCC_DB_NAME}.sql
+	if [[ -n ${CONFIG_MYSQL_DUMP_DIR} ]]; then
+		mysql -u root ${TPCC_DB_NAME} <${CONFIG_MYSQL_DUMP_DIR}/${TPCC_DB_NAME}.sql
+	else
+		mysql -u root ${TPCC_DB_NAME} <${LOCAL_DIR}/db/${TPCC_DB_NAME}.sql
+	fi
 
 	# Sleep for some seconds
 	sleep 5
@@ -82,7 +92,7 @@ function bench_single_main_mysql {
 	$numactl_cmd ${TPCC_DIR}/tpcc_start -h 127.0.0.1 -P 3306 -d ${TPCC_DB_NAME} -u root -p "" -w ${TPCC_WH} -c ${TPCC_CLIENT} -r ${TPCC_WARMUP_TIME} -l ${TPCC_RUNTIME} -i 10 | tee $1
 
 	info "==> Post-bench hook"
-	mysql_hook_end || true
+	mysql_hook_end $1 || true
 
 	# Stop MySQL
 	sudo service mysql stop
